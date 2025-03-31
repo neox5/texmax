@@ -1,6 +1,6 @@
 package tokenizer
 
-// TokenType defines the type of a token form LaTeX input.
+// TokenType defines the type of a token from LaTeX input.
 type TokenType int
 
 const (
@@ -21,19 +21,20 @@ const (
 	DELIMITER   // ( ), [ ], | etc. (visual math delimiters)
 )
 
+// Token represents a single lexical token.
 type Token struct {
-	Type  TokenType // Type of the Token
+	Type  TokenType // Type of the token
 	Value string    // Literal value from input
-	Pos   int    // Byte offset in the input
+	Pos   int       // Byte offset in the input
 }
 
 // String returns a readable representation of the token.
 func (t Token) String() string {
-	return tokenTypeToString(t.Type) + "('" + t.Value + "')"
+	return t.Type.String() + "('" + t.Value + "')"
 }
 
-// tokenTypeToString converts TokenType to string for debugging or testing
-func tokenTypeToString(tt TokenType) string {
+// String implements the fmt.Stringer interface for TokenType.
+func (tt TokenType) String() string {
 	switch tt {
 	case ILLEGAL:
 		return "ILLEGAL"
