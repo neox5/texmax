@@ -24,7 +24,7 @@ const (
 type Token struct {
 	Type  TokenType // Type of the Token
 	Value string    // Literal value from input
-	Pos   uint64    // Byte offset in the input
+	Pos   int    // Byte offset in the input
 }
 
 // String returns a readable representation of the token.
