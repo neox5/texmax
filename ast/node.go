@@ -9,6 +9,24 @@ type Node interface {
 }
 
 // --------------------
+// Root Node
+// --------------------
+
+// MathExpressionNode represents a complete LaTeX math expression.
+type MathExpressionNode struct {
+	Start    int
+	Elements []Node
+}
+
+func (n *MathExpressionNode) Pos() int { return n.Start }
+func (n *MathExpressionNode) End() int {
+	if len(n.Elements) == 0 {
+		return n.Start
+	}
+	return n.Elements[len(n.Elements)-1].End()
+}
+
+// --------------------
 // Leaf Nodes
 // --------------------
 
