@@ -14,14 +14,13 @@ func Tokenize(input string) []Token {
 		start := pos
 		charLen := len(string(r)) // byte length of the current rune
 
-		if unicode.IsSpace(r) {
-			// Skip whitespace (not emitted as token yet)
+		switch {
+		// SPACE
+		case unicode.IsSpace(r):
+			tokens = append(tokens, Token{Type: SPACE, Value: " ", Pos: start})
 			i++
 			pos += charLen
-			continue
-		}
 
-		switch {
 		// COMMAND
 		case r == '\\':
 			startIdx := i + 1

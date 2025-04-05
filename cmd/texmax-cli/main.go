@@ -65,7 +65,7 @@ func main() {
 	printAST(ast, 0)
 }
 
-func printAST(node any, indent int) {
+func printAST(node ast.Node, indent int) {
 	indentStr := strings.Repeat("  ", indent)
 
 	// Use type switch to handle different node types
@@ -78,6 +78,6 @@ func printAST(node any, indent int) {
 		}
 	// Add other node types as needed
 	default:
-		fmt.Printf("%s%T (pos=%d)\n", indentStr, node, 0) // Default case
+		fmt.Printf("%s%T (pos=%d)\n", indentStr, node, n.Pos()) // Default case
 	}
 }

@@ -80,12 +80,18 @@ func (p *Parser) parseElement() ast.Node {
 	t := p.peek()
 
 	switch t.Type {
+	case tokenizer.SPACE:
+		t = p.next()
+		return &ast.SpaceNode{Start: t.Pos, Value: t.Value}
 	case tokenizer.SYMBOL:
 		t = p.next()
 		return &ast.SymbolNode{Start: t.Pos, Value: t.Value}
 	case tokenizer.NUMBER:
 		t = p.next()
 		return &ast.NumberNode{Start: t.Pos, Value: t.Value}
+	case tokenizer.OPERATOR:
+		t = p.next()
+		return &ast.OperatorNode{Start: t.Pos, Value: t.Value}
 	default:
 		p.addError(fmt.Errorf("unexpected token %s at position %d", t.Type, t.Pos))
 		return nil
