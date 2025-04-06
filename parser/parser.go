@@ -7,17 +7,26 @@ import (
 	"github.com/neox5/texmax/tokenizer"
 )
 
+type ParseError struct {
+	Pos     int
+	Message string
+}
+
+func (e ParseError) String() string {
+	return fmt.Sprintf("%s at position %d",e.Message, e.Pos)
+}
+
 type Parser struct {
 	tokens []tokenizer.Token
 	curr   int
-	errors []error
+	errors []ParseError
 }
 
 func New(ts []tokenizer.Token) *Parser {
 	return &Parser{
 		tokens: ts,
 		curr:   0,
-		errors: []error{},
+		errors: []ParseError{},
 	}
 }
 
@@ -34,21 +43,11 @@ func (p *Parser) next() tokenizer.Token {
 	return t
 }
 
-// func (p *Parser) expect(expected tokenizer.TokenType) bool {
-// 	if p.peek().Type == expected {
-// 		p.next()
-// 		return true
-// 	}
-//
-// 	p.addError(fmt.Errorf("expected token %s, got %s at position %d", expected, p.peek().Type, p.peek().Pos))
-// 	return false
-// }
-
-func (p *Parser) addError(err error) {
-	p.errors = append(p.errors, err)
+func (p *Parser) addError(pos int, msg string) {
+	p.errors = append(p.errors, ParseError{pos, msg})
 }
 
-func (p *Parser) Parse() (ast.Node, []error) {
+func (p *Parser) Parse() (ast.Node, []ParseError) {
 	root := p.parseMathExpression()
 	return root, p.errors
 }
@@ -93,7 +92,7 @@ func (p *Parser) parseElement() ast.Node {
 		t = p.next()
 		return &ast.OperatorNode{Start: t.Pos, Value: t.Value}
 	default:
-		p.addError(fmt.Errorf("unexpected token %s at position %d", t.Type, t.Pos))
+		p.addError(t.Pos, fmt.Sprintf("unexpected token %s", t.Type))
 		return nil
 	}
 }
