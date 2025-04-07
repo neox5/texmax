@@ -18,28 +18,28 @@ func (e ParseError) String() string {
 
 type Parser struct {
 	tokens []tokenizer.Token
-	curr   int
+	pos   int
 	errors []ParseError
 }
 
 func New(ts []tokenizer.Token) *Parser {
 	return &Parser{
 		tokens: ts,
-		curr:   0,
+		pos:   0,
 		errors: []ParseError{},
 	}
 }
 
 func (p *Parser) peek() tokenizer.Token {
-	if p.curr >= len(p.tokens) {
+	if p.pos >= len(p.tokens) {
 		return tokenizer.Token{Type: tokenizer.EOF, Value: "", Pos: -1}
 	}
-	return p.tokens[p.curr]
+	return p.tokens[p.pos]
 }
 
 func (p *Parser) next() tokenizer.Token {
 	t := p.peek()
-	p.curr++
+	p.pos++
 	return t
 }
 
