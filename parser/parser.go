@@ -13,21 +13,34 @@ type ParseError struct {
 }
 
 func (e ParseError) String() string {
-	return fmt.Sprintf("%s at position %d",e.Message, e.Pos)
+	return fmt.Sprintf("%s at position %d", e.Message, e.Pos)
 }
 
 type Parser struct {
 	tokens []tokenizer.Token
-	pos   int
+	pos    int
+	prefix map[tokenizer.TokenType]func() ast.Node
+	infix  map[tokenizer.TokenType]func(ast.Node) ast.Node
 	errors []ParseError
 }
 
 func New(ts []tokenizer.Token) *Parser {
-	return &Parser{
+	p := &Parser{
 		tokens: ts,
-		pos:   0,
+		pos:    0,
+		prefix: make(map[tokenizer.TokenType]func() ast.Node),
+		infix:  make(map[tokenizer.TokenType]func(ast.Node) ast.Node),
 		errors: []ParseError{},
 	}
+
+	// Prefix registration
+	p.prefix[tokenizer.SYMBOL] = p.parseSymbol
+
+	return p
+}
+
+func (p *Parser) addError(pos int, msg string) {
+	p.errors = append(p.errors, ParseError{pos, msg})
 }
 
 func (p *Parser) peek() tokenizer.Token {
@@ -43,56 +56,53 @@ func (p *Parser) next() tokenizer.Token {
 	return t
 }
 
-func (p *Parser) addError(pos int, msg string) {
-	p.errors = append(p.errors, ParseError{pos, msg})
+const (
+	LOWEST = iota
+	SCRIPT // precedence for ^ and _
+	HIGHEST
+)
+
+var precedences = map[tokenizer.TokenType]int{
+	tokenizer.SUPERSCRIPT: SCRIPT,
+	tokenizer.SUBSCRIPT:   SCRIPT,
+}
+
+func (p *Parser) peekPrecedence() int {
+	if p, ok := precedences[p.peek().Type]; ok {
+		return p
+	}
+	return LOWEST
 }
 
 func (p *Parser) Parse() (ast.Node, []ParseError) {
-	root := p.parseMathExpression()
-	return root, p.errors
-}
-
-func (p *Parser) parseMathExpression() *ast.MathExpressionNode {
-	start := 0
-	if len(p.tokens) > 0 {
-		start = p.tokens[0].Pos
-	}
-
-	root := &ast.MathExpressionNode{
-		Start:    start,
-		Elements: []ast.Node{},
-	}
-
+	var nodes []ast.Node
 	for p.peek().Type != tokenizer.EOF {
-		el := p.parseElement()
-		if el != nil {
-			root.Elements = append(root.Elements, el)
-		} else {
-			p.next() // skip problematic token to avoid infinite loop
+		n := p.parseExpression(LOWEST)
+		if n != nil {
+			nodes = append(nodes, n)
 		}
 	}
-
-	return root
+	return &ast.RowNode{Elements: nodes}, p.errors
 }
 
-func (p *Parser) parseElement() ast.Node {
+func (p *Parser) parseExpression(precedence int) ast.Node {
 	t := p.peek()
 
-	switch t.Type {
-	case tokenizer.SPACE:
-		t = p.next()
-		return &ast.SpaceNode{Start: t.Pos, Value: t.Value}
-	case tokenizer.SYMBOL:
-		t = p.next()
-		return &ast.SymbolNode{Start: t.Pos, Value: t.Value}
-	case tokenizer.NUMBER:
-		t = p.next()
-		return &ast.NumberNode{Start: t.Pos, Value: t.Value}
-	case tokenizer.OPERATOR:
-		t = p.next()
-		return &ast.OperatorNode{Start: t.Pos, Value: t.Value}
-	default:
-		p.addError(t.Pos, fmt.Sprintf("unexpected token %s", t.Type))
+	prefix := p.prefix[t.Type]
+	if prefix == nil {
+		p.addError(t.Pos, "no prefix token: "+t.Value)
 		return nil
 	}
+
+	left := prefix()
+
+	for precedence < p.peekPrecedence() {
+		infix := p.infix[p.peek().Type]
+		if infix == nil {
+			break
+		}
+		left = infix(left)
+	}
+
+	return left
 }

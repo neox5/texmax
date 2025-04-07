@@ -9,17 +9,17 @@ type Node interface {
 }
 
 // --------------------
-// Root Node
+// Layout Nodes
 // --------------------
 
-// MathExpressionNode represents a complete LaTeX math expression.
-type MathExpressionNode struct {
+// RowNode represents a row of LaTeX math expressions.
+type RowNode struct {
 	Start    int
 	Elements []Node
 }
 
-func (n *MathExpressionNode) Pos() int { return n.Start }
-func (n *MathExpressionNode) End() int {
+func (n *RowNode) Pos() int { return n.Start }
+func (n *RowNode) End() int {
 	if len(n.Elements) == 0 {
 		return n.Start
 	}
