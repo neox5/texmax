@@ -57,7 +57,7 @@ type OperatorNode struct {
 func (n *OperatorNode) Pos() int { return n.Start }
 func (n *OperatorNode) End() int { return n.Start + len(n.Value) }
 
-// SpaceNode represents a space or spacing command.
+// SpaceNode represents a space.
 type SpaceNode struct {
 	Start int
 	Value string
