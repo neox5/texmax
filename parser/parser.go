@@ -35,14 +35,29 @@ func New(ts []tokenizer.Token) *Parser {
 }
 
 func (p *Parser) Parse() (ast.Node, []ParseError) {
-	var nodes []ast.Node
+	expr := p.parseExpression()
+	return expr, p.errors
+}
+
+// parseExpression parses a sequence of nodes that form an expression
+func (p *Parser) parseExpression() *ast.ExpressionNode {
+	start := p.peek().Pos
+	var elements []ast.Node
+	
 	for p.peek().Type != tokenizer.EOF {
 		n := p.parseNode(LOWEST)
 		if n != nil {
-			nodes = append(nodes, n)
+			elements = append(elements, n)
+		} else {
+			// If parseNode returns nil, we should advance past the current token
+			// to avoid infinite loops (unless we're at EOF)
+			if p.peek().Type != tokenizer.EOF {
+				p.next()
+			}
 		}
 	}
-	return &ast.RowNode{Elements: nodes}, p.errors
+	
+	return &ast.ExpressionNode{Start: start, Elements: elements}
 }
 
 func (p *Parser) parseNode(precedence int) ast.Node {

@@ -9,17 +9,19 @@ type Node interface {
 }
 
 // --------------------
-// Layout Nodes
+// Container Node
 // --------------------
 
-// RowNode represents a row of LaTeX math expressions.
-type RowNode struct {
+// ExpressionNode represents a sequence of LaTeX math expressions that form a coherent unit.
+// This serves as a general-purpose container for multiple nodes and can be used
+// at any level of the AST, including as the root.
+type ExpressionNode struct {
 	Start    int
 	Elements []Node
 }
 
-func (n *RowNode) Pos() int { return n.Start }
-func (n *RowNode) End() int {
+func (n *ExpressionNode) Pos() int { return n.Start }
+func (n *ExpressionNode) End() int {
 	if len(n.Elements) == 0 {
 		return n.Start
 	}

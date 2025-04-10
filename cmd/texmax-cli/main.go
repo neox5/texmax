@@ -70,7 +70,7 @@ func printAST(node ast.Node, indent int) {
 
 	// Use type switch to handle different node types
 	switch n := node.(type) {
-	case *ast.RowNode:
+	case *ast.ExpressionNode:
 		fmt.Printf("%s%T (pos=%d)\n", indentStr, node, n.Pos())
 		for i, el := range n.Elements {
 			fmt.Printf("%s  Element[%d]:\n", indentStr, i)

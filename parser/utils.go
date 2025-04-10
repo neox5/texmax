@@ -23,14 +23,17 @@ func (p *Parser) parseGroupedStrict() ast.Node {
 		p.addError("expected '{'", p.peek().Pos)
 		return nil
 	}
+
 	p.next() // consume '{'
-	n := p.parseNode(LOWEST)
+
+	// Parse the expression inside the braces
+	expr := p.parseExpression()
+
 	if p.peek().Type != tokenizer.RBRACE {
-		p.addError("expected '{'", p.peek().Pos)
-		return n
+		p.addError("expected '}'", p.peek().Pos)
 	}
 	p.next() // consume '}'
-	return n
+	return expr
 }
 
 func (p *Parser) parseGroupedOrSingle() ast.Node {
