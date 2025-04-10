@@ -1,11 +1,18 @@
 package ast
 
+import "fmt"
+
 // Node represents a node in the LaTeX math abstract syntax tree.
 type Node interface {
 	// Pos returns the position of the first character of the node.
 	Pos() int
 	// End returns the position of the character immediately after the node.
 	End() int
+	
+	// VisitChildren visits all child nodes with the given visitor
+	VisitChildren(v Visitor)
+	// implementation of Stringer interface
+	String() string
 }
 
 // --------------------
@@ -28,6 +35,18 @@ func (n *ExpressionNode) End() int {
 	return n.Elements[len(n.Elements)-1].End()
 }
 
+func (n *ExpressionNode) VisitChildren(v Visitor) {
+	v.EnterNode(n)
+	for _, el := range n.Elements {
+		Walk(v, el)
+	}
+	v.ExitNode(n)
+}
+
+func (n *ExpressionNode) String() string {
+	return fmt.Sprintf("ExpressionNode (%d nodes)",len(n.Elements))
+}
+
 // --------------------
 // Leaf Nodes
 // --------------------
@@ -41,6 +60,14 @@ type SymbolNode struct {
 func (n *SymbolNode) Pos() int { return n.Start }
 func (n *SymbolNode) End() int { return n.Start + len(n.Value) }
 
+func (n *SymbolNode) VisitChildren(v Visitor) {
+	// Leaf node, no children to visit
+}
+
+func (n *SymbolNode) String() string {
+	return fmt.Sprintf("SymbolNode (%s)", n.Value)
+}
+
 // NumberNode represents a numeric literal, e.g., "123".
 type NumberNode struct {
 	Start int
@@ -49,6 +76,14 @@ type NumberNode struct {
 
 func (n *NumberNode) Pos() int { return n.Start }
 func (n *NumberNode) End() int { return n.Start + len(n.Value) }
+
+func (n *NumberNode) VisitChildren(v Visitor) {
+	// Leaf node, no children to visit
+}
+
+func (n *NumberNode) String() string {
+	return fmt.Sprintf("NumberNode (%s)", n.Value)
+}
 
 // OperatorNode represents an operator, e.g., "+", "-", "*".
 type OperatorNode struct {
@@ -59,6 +94,14 @@ type OperatorNode struct {
 func (n *OperatorNode) Pos() int { return n.Start }
 func (n *OperatorNode) End() int { return n.Start + len(n.Value) }
 
+func (n *OperatorNode) VisitChildren(v Visitor) {
+	// Leaf node, no children to visit
+}
+
+func (n *OperatorNode) String() string {
+	return fmt.Sprintf("OperatorNode (%s)", n.Value)
+}
+
 // SpaceNode represents a space.
 type SpaceNode struct {
 	Start int
@@ -67,6 +110,14 @@ type SpaceNode struct {
 
 func (n *SpaceNode) Pos() int { return n.Start }
 func (n *SpaceNode) End() int { return n.Start + len(n.Value) }
+
+func (n *SpaceNode) VisitChildren(v Visitor) {
+	// Leaf node, no children to visit
+}
+
+func (n *SpaceNode) String() string {
+	return fmt.Sprintf("SpaceNode (%s)", n.Value)
+}
 
 // DelimiterNode represents a visual math delimiter, such as "(" or "]".
 type DelimiterNode struct {
@@ -77,41 +128,17 @@ type DelimiterNode struct {
 func (n *DelimiterNode) Pos() int { return n.Start }
 func (n *DelimiterNode) End() int { return n.Start + len(n.Value) }
 
+func (n *DelimiterNode) VisitChildren(v Visitor) {
+	// Leaf node, no children to visit
+}
+
+func (n *DelimiterNode) String() string {
+	return fmt.Sprintf("DelimiterNode (%s)", n.Value)
+}
+
 // --------------------
 // Composite Nodes
 // --------------------
-
-// ArgumentGroupNode represents a braced `{...}` group.
-type ArgumentGroupNode struct {
-	Start    int
-	Elements []Node
-}
-
-func (n *ArgumentGroupNode) Pos() int { return n.Start }
-func (n *ArgumentGroupNode) End() int {
-	if len(n.Elements) == 0 {
-		return n.Start
-	}
-	return n.Elements[len(n.Elements)-1].End()
-}
-
-// CommandNode represents a LaTeX command with arguments, e.g., `\frac{a}{b}`.
-type CommandNode struct {
-	Start     int
-	Name      string
-	Arguments []Node
-}
-
-func (n *CommandNode) Pos() int { return n.Start }
-func (n *CommandNode) End() int {
-	end := n.Start + len(n.Name)
-	for _, arg := range n.Arguments {
-		if arg.End() > end {
-			end = arg.End()
-		}
-	}
-	return end
-}
 
 // SuperscriptNode represents `base^exponent`.
 type SuperscriptNode struct {
@@ -123,6 +150,22 @@ type SuperscriptNode struct {
 func (n *SuperscriptNode) Pos() int { return n.Start }
 func (n *SuperscriptNode) End() int { return n.Exponent.End() }
 
+func (n *SuperscriptNode) VisitChildren(v Visitor) {
+	v.EnterNode(n)
+	
+	// Visit base
+	Walk(v, n.Base)
+	
+	// Visit exponent
+	Walk(v, n.Exponent)
+	
+	v.ExitNode(n)
+}
+
+func (n *SuperscriptNode) String() string {
+	return "SuperscriptNode"
+}
+
 // SubscriptNode represents `base_subscript`.
 type SubscriptNode struct {
 	Start     int
@@ -133,6 +176,22 @@ type SubscriptNode struct {
 func (n *SubscriptNode) Pos() int { return n.Start }
 func (n *SubscriptNode) End() int { return n.Subscript.End() }
 
+func (n *SubscriptNode) VisitChildren(v Visitor) {
+	v.EnterNode(n)
+	
+	// Visit base
+	Walk(v, n.Base)
+	
+	// Visit subscript
+	Walk(v, n.Subscript)
+	
+	v.ExitNode(n)
+}
+
+func (n *SubscriptNode) String() string {
+	return "SubscriptNode"
+}
+
 // FractionNode represents a LaTeX `\frac{a}{b}`.
 type FractionNode struct {
 	Start       int
@@ -142,3 +201,19 @@ type FractionNode struct {
 
 func (n *FractionNode) Pos() int { return n.Start }
 func (n *FractionNode) End() int { return n.Denominator.End() }
+
+func (n *FractionNode) VisitChildren(v Visitor) {
+	v.EnterNode(n)
+	
+	// Visit numerator
+	Walk(v, n.Numerator)
+	
+	// Visit denominator
+	Walk(v, n.Denominator)
+	
+	v.ExitNode(n)
+}
+
+func (n *FractionNode) String() string {
+	return "FractionNode"
+}

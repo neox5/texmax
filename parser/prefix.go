@@ -16,3 +16,8 @@ func (p *Parser) parseSpace() ast.Node {
 	t := p.next()
 	return &ast.SpaceNode{Start: t.Pos, Value: t.Value}
 }
+
+func (p *Parser) parseOperator() ast.Node {
+	t := p.next()
+	return &ast.OperatorNode{Start: t.Pos, Value: t.Value}
+}

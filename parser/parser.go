@@ -27,6 +27,7 @@ func New(ts []tokenizer.Token) *Parser {
 	p.prefix[tokenizer.SYMBOL] = p.parseSymbol
 	p.prefix[tokenizer.NUMBER] = p.parseNumber
 	p.prefix[tokenizer.SPACE] = p.parseSpace
+	p.prefix[tokenizer.OPERATOR] = p.parseOperator
 
 	// Infix registration
 	p.infix[tokenizer.SUPERSCRIPT] = p.parseSuperscript

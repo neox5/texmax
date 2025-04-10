@@ -50,7 +50,7 @@ func main() {
 
 	// Parse
 	p := parser.New(tokens)
-	ast, errors := p.Parse()
+	root, errors := p.Parse()
 
 	// Print errors if any
 	if len(errors) > 0 {
@@ -60,24 +60,8 @@ func main() {
 		}
 	}
 
-	// Print AST
+	// Print AST using the new PrintVisitor
 	fmt.Println("\nAST Structure:")
-	printAST(ast, 0)
-}
-
-func printAST(node ast.Node, indent int) {
-	indentStr := strings.Repeat("  ", indent)
-
-	// Use type switch to handle different node types
-	switch n := node.(type) {
-	case *ast.ExpressionNode:
-		fmt.Printf("%s%T (pos=%d)\n", indentStr, node, n.Pos())
-		for i, el := range n.Elements {
-			fmt.Printf("%s  Element[%d]:\n", indentStr, i)
-			printAST(el, indent+2)
-		}
-	// Add other node types as needed
-	default:
-		fmt.Printf("%s%T (pos=%d)\n", indentStr, node, n.Pos()) // Default case
-	}
+	visitor := ast.NewPrintVisitor(os.Stdout)
+	ast.Walk(visitor, root)
 }
