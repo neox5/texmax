@@ -217,3 +217,42 @@ func (n *FractionNode) VisitChildren(v Visitor) {
 func (n *FractionNode) String() string {
 	return "FractionNode"
 }
+
+// IntegralNode represents a LaTeX \int command with optional limits.
+type IntegralNode struct {
+	Start      int
+	LowerLimit Node
+	UpperLimit Node
+}
+
+func (n *IntegralNode) Pos() int { return n.Start }
+func (n *IntegralNode) End() int {
+	// If there are limits, the end is the end of the last limit
+	if n.UpperLimit != nil {
+		return n.UpperLimit.End()
+	}
+	if n.LowerLimit != nil {
+		return n.LowerLimit.End()
+	}
+	return n.Start + 4 // Length of "\int"
+}
+
+func (n *IntegralNode) VisitChildren(v Visitor) {
+	v.EnterNode(n)
+	
+	// Visit lower limit if it exists
+	if n.LowerLimit != nil {
+		Walk(v, n.LowerLimit)
+	}
+	
+	// Visit upper limit if it exists
+	if n.UpperLimit != nil {
+		Walk(v, n.UpperLimit)
+	}
+	
+	v.ExitNode(n)
+}
+
+func (n *IntegralNode) String() string {
+	return "IntegralNode"
+}
