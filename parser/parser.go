@@ -28,6 +28,7 @@ func New(ts []tokenizer.Token) *Parser {
 	p.prefix[tokenizer.NUMBER] = p.parseNumber
 	p.prefix[tokenizer.SPACE] = p.parseSpace
 	p.prefix[tokenizer.OPERATOR] = p.parseOperator
+	p.prefix[tokenizer.COMMAND] = p.parseCommand
 
 	// Infix registration
 	p.infix[tokenizer.SUPERSCRIPT] = p.parseSuperscript
@@ -44,8 +45,8 @@ func (p *Parser) Parse() (ast.Node, []ParseError) {
 func (p *Parser) parseExpression() *ast.ExpressionNode {
 	start := p.peek().Pos
 	var elements []ast.Node
-	
-	for p.peek().Type != tokenizer.EOF {
+
+	for p.peek().Type != tokenizer.EOF && p.peek().Type != tokenizer.RBRACE {
 		n := p.parseNode(LOWEST)
 		if n != nil {
 			elements = append(elements, n)
@@ -57,7 +58,7 @@ func (p *Parser) parseExpression() *ast.ExpressionNode {
 			}
 		}
 	}
-	
+
 	return &ast.ExpressionNode{Start: start, Elements: elements}
 }
 

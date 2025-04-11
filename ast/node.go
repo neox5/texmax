@@ -116,7 +116,7 @@ func (n *SpaceNode) VisitChildren(v Visitor) {
 }
 
 func (n *SpaceNode) String() string {
-	return fmt.Sprintf("SpaceNode (%s)", n.Value)
+	return "SpaceNode"
 }
 
 // DelimiterNode represents a visual math delimiter, such as "(" or "]".

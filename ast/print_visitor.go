@@ -21,10 +21,10 @@ func NewPrintVisitor(w io.Writer) *PrintVisitor {
 }
 
 // Visit processes a node
-func (v *PrintVisitor) Visit(node Node) {
+func (v *PrintVisitor) Visit(node Node, role string) {
 	// Get the indentation string
 	indent := v.indent()
-	
+
 	// Print the node with its prefix
 	if v.Depth == 0 {
 		// Root node - no prefix
@@ -40,7 +40,7 @@ func (v *PrintVisitor) indent() string {
 	if v.Depth == 0 {
 		return ""
 	}
-	
+
 	// Use a simple pipe-based indentation
 	// For every level, add a pipe and some spaces
 	return strings.Repeat("  ", v.Depth-1) + "|- "

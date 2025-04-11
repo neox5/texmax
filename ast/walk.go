@@ -6,6 +6,6 @@ func Walk(v Visitor, node Node) {
 		return
 	}
 
-	v.Visit(node)
+	v.Visit(node, "")
 	node.VisitChildren(v)
 }
