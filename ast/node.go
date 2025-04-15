@@ -278,3 +278,45 @@ func (n *IntegralNode) VisitChildren(v Visitor) {
 func (n *IntegralNode) String() string {
 	return "IntegralNode"
 }
+
+// SqrtNode represents a LaTeX `\sqrt` command, optionally with an index.
+// For example: \sqrt{x} for a square root, or \sqrt[n]{x} for an nth root.
+type SqrtNode struct {
+	Start    int
+	Radicand Node // The expression under the radical
+	Index    Node // Optional: The index for nth roots (as in \sqrt[n]{x})
+}
+
+func (n *SqrtNode) Pos() int { return n.Start }
+func (n *SqrtNode) End() int {
+	// If there's a radicand, the end is the end of the radicand
+	if n.Radicand != nil {
+		return n.Radicand.End()
+	}
+	// If there's no radicand (which shouldn't happen in valid LaTeX),
+	// the end is the start plus the length of \sqrt
+	return n.Start + 5 // Length of "\sqrt"
+}
+
+func (n *SqrtNode) VisitChildren(v Visitor) {
+	v.EnterNode(n)
+
+	// Visit index if it exists
+	if n.Index != nil {
+		Walk(v, n.Index)
+	}
+
+	// Visit radicand
+	if n.Radicand != nil {
+		Walk(v, n.Radicand)
+	}
+
+	v.ExitNode(n)
+}
+
+func (n *SqrtNode) String() string {
+	if n.Index != nil {
+		return "SqrtNode (with index)"
+	}
+	return "SqrtNode (square root)"
+}

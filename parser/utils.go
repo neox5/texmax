@@ -66,3 +66,28 @@ func (p *Parser) parseLimits() (ast.Node, ast.Node) {
 		}
 	}
 }
+
+// parseOptionalArgument parses an optional argument enclosed in square brackets.
+// Used for commands like \sqrt[n]{x} where [n] is an optional index.
+// Returns nil if there is no optional argument.
+func (p *Parser) parseOptionalArgument() ast.Node {
+	// Check if the next token is a left square bracket
+	if p.peek().Type != tokenizer.DELIMITER || p.peek().Value != "[" {
+		return nil // No optional argument
+	}
+
+	p.next() // consume '['
+
+	// Parse the expression inside the brackets
+	expr := p.parseExpression()
+
+	// Check for closing bracket
+	if p.peek().Type != tokenizer.DELIMITER || p.peek().Value != "]" {
+		p.addError("expected closing ']' for optional argument", p.peek().Pos)
+		// Even if there's an error, we'll return what we parsed so far
+	} else {
+		p.next() // consume ']'
+	}
+
+	return expr
+}

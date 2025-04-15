@@ -46,7 +46,15 @@ func (p *Parser) parseExpression() *ast.ExpressionNode {
 	start := p.peek().Pos
 	var elements []ast.Node
 
-	for p.peek().Type != tokenizer.EOF && p.peek().Type != tokenizer.RBRACE {
+	for {
+		curr := p.peek()
+		// Exit conditions
+		if curr.Type == tokenizer.EOF ||
+			curr.Type == tokenizer.RBRACE ||
+			(curr.Type == tokenizer.DELIMITER && curr.Value == "]") {
+			break
+		}
+
 		n := p.parseNode(LOWEST)
 		if n != nil {
 			elements = append(elements, n)

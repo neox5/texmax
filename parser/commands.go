@@ -49,6 +49,8 @@ func (p *Parser) parseCommand() ast.Node {
 		return p.parseFrac(startPos)
 	case "int":
 		return p.parseInt(startPos)
+	case "sqrt":
+		return p.parseSqrt(startPos)
 	default:
 		p.addError(fmt.Sprintf("unsupported command: \\%s", commandName), startPos)
 		return nil
@@ -87,4 +89,22 @@ func (p *Parser) parseInt(startPos int) ast.Node {
 		LowerLimit: lowerLimit,
 		UpperLimit: upperLimit,
 	}
+}
+
+func (p *Parser) parseSqrt(startPos int) ast.Node {
+    // Parse optional numeric index argument in square brackets
+    index := p.parseOptionalArgument()
+    
+    // Parse required radicand in curly braces
+    radicand := p.parseGroupedStrict()
+    if radicand == nil {
+        p.addError("expected radicand after \\sqrt", startPos)
+        return nil
+    }
+    
+    return &ast.SqrtNode{
+        Start:    startPos,
+        Radicand: radicand,
+        Index:    index,
+    }
 }
