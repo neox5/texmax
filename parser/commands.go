@@ -6,10 +6,43 @@ import (
 	"github.com/neox5/texmax/ast"
 )
 
+// List of recognized mathematical functions that don't take explicit arguments
+var mathFunctions = map[string]bool{
+	"sin":    true,
+	"cos":    true,
+	"tan":    true,
+	"cot":    true,
+	"sec":    true,
+	"csc":    true,
+	"log":    true,
+	"ln":     true,
+	"exp":    true,
+	"arcsin": true,
+	"arccos": true,
+	"arctan": true,
+	"sinh":   true,
+	"cosh":   true,
+	"tanh":   true,
+	"lim":    true,
+	"max":    true,
+	"min":    true,
+	"det":    true,
+	"arg":    true,
+	"mod":    true,
+}
+
 func (p *Parser) parseCommand() ast.Node {
 	token := p.next() // consume the COMMAND token
 	commandName := token.Value
 	startPos := token.Pos
+
+	// Check if this is a known math function
+	if mathFunctions[commandName] {
+		return &ast.NonArgumentFunctionNode{
+			Start: startPos,
+			Name:  commandName,
+		}
+	}
 
 	switch commandName {
 	case "frac":
@@ -46,7 +79,7 @@ func (p *Parser) parseFrac(startPos int) ast.Node {
 func (p *Parser) parseInt(startPos int) ast.Node {
 	// Parse optional limits (subscript and superscript)
 	lowerLimit, upperLimit := p.parseLimits()
-	
+
 	// Create an IntegralNode with just the limits
 	// The integrand will follow naturally in the parent expression
 	return &ast.IntegralNode{

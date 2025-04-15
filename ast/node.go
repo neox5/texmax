@@ -8,7 +8,7 @@ type Node interface {
 	Pos() int
 	// End returns the position of the character immediately after the node.
 	End() int
-	
+
 	// VisitChildren visits all child nodes with the given visitor
 	VisitChildren(v Visitor)
 	// implementation of Stringer interface
@@ -44,7 +44,7 @@ func (n *ExpressionNode) VisitChildren(v Visitor) {
 }
 
 func (n *ExpressionNode) String() string {
-	return fmt.Sprintf("ExpressionNode (%d nodes)",len(n.Elements))
+	return fmt.Sprintf("ExpressionNode (%d nodes)", len(n.Elements))
 }
 
 // --------------------
@@ -102,6 +102,28 @@ func (n *OperatorNode) String() string {
 	return fmt.Sprintf("OperatorNode (%s)", n.Value)
 }
 
+// NonArgumentFunctionNode represents a mathematical function like \sin, \cos, \log, etc.
+// These functions are rendered in upright Roman font with proper spacing, but don't
+// take explicit arguments in LaTeX syntax (any following expression is implicitly an argument).
+type NonArgumentFunctionNode struct {
+	Start int
+	Name  string
+}
+
+func (n *NonArgumentFunctionNode) Pos() int { return n.Start }
+func (n *NonArgumentFunctionNode) End() int {
+	// End position is the start position plus the length of the name and backslash
+	return n.Start + len(n.Name) + 1 // +1 for the backslash
+}
+
+func (n *NonArgumentFunctionNode) VisitChildren(v Visitor) {
+	// Leaf node, no children to visit
+}
+
+func (n *NonArgumentFunctionNode) String() string {
+	return fmt.Sprintf("NonArgumentFunctionNode (%s)", n.Name)
+}
+
 // SpaceNode represents a space.
 type SpaceNode struct {
 	Start int
@@ -152,13 +174,13 @@ func (n *SuperscriptNode) End() int { return n.Exponent.End() }
 
 func (n *SuperscriptNode) VisitChildren(v Visitor) {
 	v.EnterNode(n)
-	
+
 	// Visit base
 	Walk(v, n.Base)
-	
+
 	// Visit exponent
 	Walk(v, n.Exponent)
-	
+
 	v.ExitNode(n)
 }
 
@@ -178,13 +200,13 @@ func (n *SubscriptNode) End() int { return n.Subscript.End() }
 
 func (n *SubscriptNode) VisitChildren(v Visitor) {
 	v.EnterNode(n)
-	
+
 	// Visit base
 	Walk(v, n.Base)
-	
+
 	// Visit subscript
 	Walk(v, n.Subscript)
-	
+
 	v.ExitNode(n)
 }
 
@@ -204,13 +226,13 @@ func (n *FractionNode) End() int { return n.Denominator.End() }
 
 func (n *FractionNode) VisitChildren(v Visitor) {
 	v.EnterNode(n)
-	
+
 	// Visit numerator
 	Walk(v, n.Numerator)
-	
+
 	// Visit denominator
 	Walk(v, n.Denominator)
-	
+
 	v.ExitNode(n)
 }
 
@@ -239,17 +261,17 @@ func (n *IntegralNode) End() int {
 
 func (n *IntegralNode) VisitChildren(v Visitor) {
 	v.EnterNode(n)
-	
+
 	// Visit lower limit if it exists
 	if n.LowerLimit != nil {
 		Walk(v, n.LowerLimit)
 	}
-	
+
 	// Visit upper limit if it exists
 	if n.UpperLimit != nil {
 		Walk(v, n.UpperLimit)
 	}
-	
+
 	v.ExitNode(n)
 }
 
