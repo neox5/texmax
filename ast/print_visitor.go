@@ -44,7 +44,6 @@ func (p *GoLikePrinter) printIndent() {
 
 // Visit methods for container nodes
 func (p *GoLikePrinter) VisitExpressionNode(node *ExpressionNode) {
-	p.printIndent()
 	fmt.Fprintf(p.Writer, "*ast.ExpressionNode {\n")
 	p.increaseDepth()
 
