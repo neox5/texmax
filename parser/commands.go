@@ -95,8 +95,8 @@ func (p *Parser) parseSqrt(startPos int) ast.Node {
     // Parse optional numeric index argument in square brackets
     index := p.parseOptionalArgument()
     
-    // Parse required radicand in curly braces
-    radicand := p.parseGroupedStrict()
+    // Parse radicand in curly braces or single token
+    radicand := p.parseGroupedOrSingle()
     if radicand == nil {
         p.addError("expected radicand after \\sqrt", startPos)
         return nil
