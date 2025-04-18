@@ -6,6 +6,11 @@ import (
 )
 
 func (p *Parser) peek() tokenizer.Token {
+	// Skip over any SPACE tokens
+	for p.pos < len(p.tokens) && p.tokens[p.pos].Type == tokenizer.SPACE {
+		p.pos++
+	}
+
 	if p.pos >= len(p.tokens) {
 		return tokenizer.Token{Type: tokenizer.EOF, Value: "", Pos: -1}
 	}
