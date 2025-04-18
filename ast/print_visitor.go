@@ -6,150 +6,274 @@ import (
 	"strings"
 )
 
-// PrintVisitor prints the AST with proper indentation in tree format
-type PrintVisitor struct {
+// GoLikePrinter prints the AST in a manner similar to Go's AST format
+type GoLikePrinter struct {
 	Writer io.Writer
 	Depth  int
 }
 
-// NewPrintVisitor creates a new PrintVisitor
-func NewPrintVisitor(w io.Writer) *PrintVisitor {
-	return &PrintVisitor{
+// NewGoLikePrinter creates a new GoLikePrinter
+func NewGoLikePrinter(w io.Writer) *GoLikePrinter {
+	return &GoLikePrinter{
 		Writer: w,
 		Depth:  0,
 	}
 }
 
-// indent returns the indentation string for the current depth
-func (v *PrintVisitor) indent() string {
-	if v.Depth == 0 {
-		return ""
-	}
-
-	// Use a simple pipe-based indentation
-	// For every level, add a pipe and some spaces
-	return strings.Repeat("  ", v.Depth-1) + "|- "
+// indent returns the proper indentation string for the current depth
+func (p *GoLikePrinter) indent() string {
+	return strings.Repeat("  ", p.Depth)
 }
 
-// printNode helper function to print a node with proper indentation
-func (v *PrintVisitor) printNode(description string) {
-	if v.Depth == 0 {
-		fmt.Fprintf(v.Writer, "%s\n", description)
-	} else {
-		fmt.Fprintf(v.Writer, "%s%s\n", v.indent(), description)
+// increaseDepth increases the indentation depth
+func (p *GoLikePrinter) increaseDepth() {
+	p.Depth++
+}
+
+// decreaseDepth decreases the indentation depth
+func (p *GoLikePrinter) decreaseDepth() {
+	if p.Depth > 0 {
+		p.Depth--
 	}
+}
+
+// printIndent prints the current indentation level
+func (p *GoLikePrinter) printIndent() {
+	fmt.Fprint(p.Writer, p.indent())
 }
 
 // Visit methods for container nodes
-func (v *PrintVisitor) VisitExpressionNode(node *ExpressionNode) {
-	v.printNode(fmt.Sprintf("ExpressionNode (%d nodes)", len(node.Elements)))
-	v.Depth++
-	
-	for _, element := range node.Elements {
-		element.Accept(v)
+func (p *GoLikePrinter) VisitExpressionNode(node *ExpressionNode) {
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "*ast.ExpressionNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Elements: []ast.Node (len = %d) {\n", len(node.Elements))
+	p.increaseDepth()
+
+	for i, element := range node.Elements {
+		p.printIndent()
+		fmt.Fprintf(p.Writer, "%d: ", i)
+		element.Accept(p)
 	}
-	
-	v.Depth--
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
 // Visit methods for leaf nodes
-func (v *PrintVisitor) VisitSymbolNode(node *SymbolNode) {
-	v.printNode(fmt.Sprintf("SymbolNode (%s)", node.Value))
+func (p *GoLikePrinter) VisitSymbolNode(node *SymbolNode) {
+	fmt.Fprintf(p.Writer, "*ast.SymbolNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Value: %q\n", node.Value)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitNumberNode(node *NumberNode) {
-	v.printNode(fmt.Sprintf("NumberNode (%s)", node.Value))
+func (p *GoLikePrinter) VisitNumberNode(node *NumberNode) {
+	fmt.Fprintf(p.Writer, "*ast.NumberNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Value: %q\n", node.Value)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitOperatorNode(node *OperatorNode) {
-	v.printNode(fmt.Sprintf("OperatorNode (%s)", node.Value))
+func (p *GoLikePrinter) VisitOperatorNode(node *OperatorNode) {
+	fmt.Fprintf(p.Writer, "*ast.OperatorNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Value: %q\n", node.Value)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitNonArgumentFunctionNode(node *NonArgumentFunctionNode) {
-	v.printNode(fmt.Sprintf("NonArgumentFunctionNode (%s)", node.Name))
+func (p *GoLikePrinter) VisitNonArgumentFunctionNode(node *NonArgumentFunctionNode) {
+	fmt.Fprintf(p.Writer, "*ast.NonArgumentFunctionNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Name: %q\n", node.Name)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitSpaceNode(node *SpaceNode) {
-	v.printNode("SpaceNode")
+func (p *GoLikePrinter) VisitSpaceNode(node *SpaceNode) {
+	fmt.Fprintf(p.Writer, "*ast.SpaceNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Value: %q\n", node.Value)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitDelimiterNode(node *DelimiterNode) {
-	v.printNode(fmt.Sprintf("DelimiterNode (%s)", node.Value))
+func (p *GoLikePrinter) VisitDelimiterNode(node *DelimiterNode) {
+	fmt.Fprintf(p.Writer, "*ast.DelimiterNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Value: %q\n", node.Value)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
 // Visit methods for composite nodes
-func (v *PrintVisitor) VisitSuperscriptNode(node *SuperscriptNode) {
-	v.printNode("SuperscriptNode")
-	v.Depth++
-	
-	node.Base.Accept(v)
-	node.Exponent.Accept(v)
-	
-	v.Depth--
+func (p *GoLikePrinter) VisitSuperscriptNode(node *SuperscriptNode) {
+	fmt.Fprintf(p.Writer, "*ast.SuperscriptNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Base: ")
+	node.Base.Accept(p)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Exponent: ")
+	node.Exponent.Accept(p)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitSubscriptNode(node *SubscriptNode) {
-	v.printNode("SubscriptNode")
-	v.Depth++
-	
-	node.Base.Accept(v)
-	node.Subscript.Accept(v)
-	
-	v.Depth--
+func (p *GoLikePrinter) VisitSubscriptNode(node *SubscriptNode) {
+	fmt.Fprintf(p.Writer, "*ast.SubscriptNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Base: ")
+	node.Base.Accept(p)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Subscript: ")
+	node.Subscript.Accept(p)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitFractionNode(node *FractionNode) {
-	v.printNode("FractionNode")
-	v.Depth++
-	
-	node.Numerator.Accept(v)
-	node.Denominator.Accept(v)
-	
-	v.Depth--
+func (p *GoLikePrinter) VisitFractionNode(node *FractionNode) {
+	fmt.Fprintf(p.Writer, "*ast.FractionNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Numerator: ")
+	node.Numerator.Accept(p)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Denominator: ")
+	node.Denominator.Accept(p)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitIntegralNode(node *IntegralNode) {
-	v.printNode("IntegralNode")
-	v.Depth++
-	
+func (p *GoLikePrinter) VisitIntegralNode(node *IntegralNode) {
+	fmt.Fprintf(p.Writer, "*ast.IntegralNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
 	if node.LowerLimit != nil {
-		v.printNode("LowerLimit:")
-		v.Depth++
-		node.LowerLimit.Accept(v)
-		v.Depth--
+		fmt.Fprintf(p.Writer, "LowerLimit: ")
+		node.LowerLimit.Accept(p)
+	} else {
+		fmt.Fprintf(p.Writer, "LowerLimit: nil\n")
 	}
-	
+
+	p.printIndent()
 	if node.UpperLimit != nil {
-		v.printNode("UpperLimit:")
-		v.Depth++
-		node.UpperLimit.Accept(v)
-		v.Depth--
+		fmt.Fprintf(p.Writer, "UpperLimit: ")
+		node.UpperLimit.Accept(p)
+	} else {
+		fmt.Fprintf(p.Writer, "UpperLimit: nil\n")
 	}
-	
-	v.Depth--
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (v *PrintVisitor) VisitSqrtNode(node *SqrtNode) {
+func (p *GoLikePrinter) VisitSqrtNode(node *SqrtNode) {
+	fmt.Fprintf(p.Writer, "*ast.SqrtNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
 	if node.Index != nil {
-		v.printNode("SqrtNode (with index)")
+		fmt.Fprintf(p.Writer, "Index: ")
+		node.Index.Accept(p)
 	} else {
-		v.printNode("SqrtNode (square root)")
+		fmt.Fprintf(p.Writer, "Index: nil\n")
 	}
-	v.Depth++
-	
-	if node.Index != nil {
-		v.printNode("Index:")
-		v.Depth++
-		node.Index.Accept(v)
-		v.Depth--
-	}
-	
+
+	p.printIndent()
 	if node.Radicand != nil {
-		v.printNode("Radicand:")
-		v.Depth++
-		node.Radicand.Accept(v)
-		v.Depth--
+		fmt.Fprintf(p.Writer, "Radicand: ")
+		node.Radicand.Accept(p)
+	} else {
+		fmt.Fprintf(p.Writer, "Radicand: nil\n")
 	}
-	
-	v.Depth--
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
 }
