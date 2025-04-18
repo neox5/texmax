@@ -62,6 +62,6 @@ func main() {
 
 	// Print AST using the GoLikePrinter
 	fmt.Println("\nAST Structure:")
-	visitor := ast.NewGoLikePrinter(os.Stdout)
+	visitor := ast.NewPrintVisitor(os.Stdout)
 	ast.Walk(visitor, root)
 }

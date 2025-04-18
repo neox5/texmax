@@ -6,44 +6,44 @@ import (
 	"strings"
 )
 
-// GoLikePrinter prints the AST in a manner similar to Go's AST format
-type GoLikePrinter struct {
+// PrintVisitor prints the AST in a structured format
+type PrintVisitor struct {
 	Writer io.Writer
 	Depth  int
 }
 
-// NewGoLikePrinter creates a new GoLikePrinter
-func NewGoLikePrinter(w io.Writer) *GoLikePrinter {
-	return &GoLikePrinter{
+// NewPrintVisitor creates a new PrintVisitor
+func NewPrintVisitor(w io.Writer) *PrintVisitor {
+	return &PrintVisitor{
 		Writer: w,
 		Depth:  0,
 	}
 }
 
 // indent returns the proper indentation string for the current depth
-func (p *GoLikePrinter) indent() string {
+func (p *PrintVisitor) indent() string {
 	return strings.Repeat("  ", p.Depth)
 }
 
 // increaseDepth increases the indentation depth
-func (p *GoLikePrinter) increaseDepth() {
+func (p *PrintVisitor) increaseDepth() {
 	p.Depth++
 }
 
 // decreaseDepth decreases the indentation depth
-func (p *GoLikePrinter) decreaseDepth() {
+func (p *PrintVisitor) decreaseDepth() {
 	if p.Depth > 0 {
 		p.Depth--
 	}
 }
 
 // printIndent prints the current indentation level
-func (p *GoLikePrinter) printIndent() {
+func (p *PrintVisitor) printIndent() {
 	fmt.Fprint(p.Writer, p.indent())
 }
 
 // Visit methods for container nodes
-func (p *GoLikePrinter) VisitExpressionNode(node *ExpressionNode) {
+func (p *PrintVisitor) VisitExpressionNode(node *ExpressionNode) {
 	fmt.Fprintf(p.Writer, "*ast.ExpressionNode {\n")
 	p.increaseDepth()
 
@@ -70,7 +70,7 @@ func (p *GoLikePrinter) VisitExpressionNode(node *ExpressionNode) {
 }
 
 // Visit methods for leaf nodes
-func (p *GoLikePrinter) VisitSymbolNode(node *SymbolNode) {
+func (p *PrintVisitor) VisitSymbolNode(node *SymbolNode) {
 	fmt.Fprintf(p.Writer, "*ast.SymbolNode {\n")
 	p.increaseDepth()
 
@@ -85,7 +85,7 @@ func (p *GoLikePrinter) VisitSymbolNode(node *SymbolNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitNumberNode(node *NumberNode) {
+func (p *PrintVisitor) VisitNumberNode(node *NumberNode) {
 	fmt.Fprintf(p.Writer, "*ast.NumberNode {\n")
 	p.increaseDepth()
 
@@ -100,7 +100,7 @@ func (p *GoLikePrinter) VisitNumberNode(node *NumberNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitOperatorNode(node *OperatorNode) {
+func (p *PrintVisitor) VisitOperatorNode(node *OperatorNode) {
 	fmt.Fprintf(p.Writer, "*ast.OperatorNode {\n")
 	p.increaseDepth()
 
@@ -115,7 +115,7 @@ func (p *GoLikePrinter) VisitOperatorNode(node *OperatorNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitNonArgumentFunctionNode(node *NonArgumentFunctionNode) {
+func (p *PrintVisitor) VisitNonArgumentFunctionNode(node *NonArgumentFunctionNode) {
 	fmt.Fprintf(p.Writer, "*ast.NonArgumentFunctionNode {\n")
 	p.increaseDepth()
 
@@ -130,7 +130,7 @@ func (p *GoLikePrinter) VisitNonArgumentFunctionNode(node *NonArgumentFunctionNo
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitSpaceNode(node *SpaceNode) {
+func (p *PrintVisitor) VisitSpaceNode(node *SpaceNode) {
 	fmt.Fprintf(p.Writer, "*ast.SpaceNode {\n")
 	p.increaseDepth()
 
@@ -145,7 +145,7 @@ func (p *GoLikePrinter) VisitSpaceNode(node *SpaceNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitDelimiterNode(node *DelimiterNode) {
+func (p *PrintVisitor) VisitDelimiterNode(node *DelimiterNode) {
 	fmt.Fprintf(p.Writer, "*ast.DelimiterNode {\n")
 	p.increaseDepth()
 
@@ -161,7 +161,7 @@ func (p *GoLikePrinter) VisitDelimiterNode(node *DelimiterNode) {
 }
 
 // Visit methods for composite nodes
-func (p *GoLikePrinter) VisitSuperscriptNode(node *SuperscriptNode) {
+func (p *PrintVisitor) VisitSuperscriptNode(node *SuperscriptNode) {
 	fmt.Fprintf(p.Writer, "*ast.SuperscriptNode {\n")
 	p.increaseDepth()
 
@@ -181,7 +181,7 @@ func (p *GoLikePrinter) VisitSuperscriptNode(node *SuperscriptNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitSubscriptNode(node *SubscriptNode) {
+func (p *PrintVisitor) VisitSubscriptNode(node *SubscriptNode) {
 	fmt.Fprintf(p.Writer, "*ast.SubscriptNode {\n")
 	p.increaseDepth()
 
@@ -201,7 +201,7 @@ func (p *GoLikePrinter) VisitSubscriptNode(node *SubscriptNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitFractionNode(node *FractionNode) {
+func (p *PrintVisitor) VisitFractionNode(node *FractionNode) {
 	fmt.Fprintf(p.Writer, "*ast.FractionNode {\n")
 	p.increaseDepth()
 
@@ -221,7 +221,7 @@ func (p *GoLikePrinter) VisitFractionNode(node *FractionNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitIntegralNode(node *IntegralNode) {
+func (p *PrintVisitor) VisitIntegralNode(node *IntegralNode) {
 	fmt.Fprintf(p.Writer, "*ast.IntegralNode {\n")
 	p.increaseDepth()
 
@@ -249,7 +249,7 @@ func (p *GoLikePrinter) VisitIntegralNode(node *IntegralNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *GoLikePrinter) VisitSqrtNode(node *SqrtNode) {
+func (p *PrintVisitor) VisitSqrtNode(node *SqrtNode) {
 	fmt.Fprintf(p.Writer, "*ast.SqrtNode {\n")
 	p.increaseDepth()
 
