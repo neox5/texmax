@@ -17,7 +17,7 @@ type Visitor interface {
 	VisitSuperscriptNode(node *SuperscriptNode)
 	VisitSubscriptNode(node *SubscriptNode)
 	VisitFractionNode(node *FractionNode)
-	VisitIntegralNode(node *IntegralNode)
+	VisitLimitedOperatorNode(node *LimitedOperatorNode)
 	VisitSqrtNode(node *SqrtNode)
 }
 
@@ -53,7 +53,7 @@ func (v *BaseVisitor) VisitFractionNode(node *FractionNode) {
 	node.Denominator.Accept(v)
 }
 
-func (v *BaseVisitor) VisitIntegralNode(node *IntegralNode) {
+func (v *BaseVisitor) VisitLimitedOperatorNode(node *LimitedOperatorNode) {
 	if node.LowerLimit != nil {
 		node.LowerLimit.Accept(v)
 	}

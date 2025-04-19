@@ -221,12 +221,15 @@ func (p *PrintVisitor) VisitFractionNode(node *FractionNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
-func (p *PrintVisitor) VisitIntegralNode(node *IntegralNode) {
-	fmt.Fprintf(p.Writer, "*ast.IntegralNode {\n")
+func (p *PrintVisitor) VisitLimitedOperatorNode(node *LimitedOperatorNode) {
+	fmt.Fprintf(p.Writer, "*ast.LimitedOperatorNode {\n")
 	p.increaseDepth()
 
 	p.printIndent()
 	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Operator: %q\n", node.Operator)
 
 	p.printIndent()
 	if node.LowerLimit != nil {

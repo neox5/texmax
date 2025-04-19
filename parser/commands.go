@@ -23,12 +23,19 @@ var mathFunctions = map[string]bool{
 	"sinh":   true,
 	"cosh":   true,
 	"tanh":   true,
-	"lim":    true,
 	"max":    true,
 	"min":    true,
 	"det":    true,
 	"arg":    true,
 	"mod":    true,
+}
+
+// List of operators that support limits
+var limitedOperators = map[string]bool{
+	"int":  true,
+	"sum":  true,
+	"prod": true,
+	"lim":  true,
 }
 
 func (p *Parser) parseCommand() ast.Node {
@@ -44,11 +51,14 @@ func (p *Parser) parseCommand() ast.Node {
 		}
 	}
 
+	// Check if this is a limited operator
+	if limitedOperators[commandName] {
+		return p.parseLimitedOperator(commandName, startPos)
+	}
+
 	switch commandName {
 	case "frac":
 		return p.parseFrac(startPos)
-	case "int":
-		return p.parseInt(startPos)
 	case "sqrt":
 		return p.parseSqrt(startPos)
 	default:
@@ -78,33 +88,39 @@ func (p *Parser) parseFrac(startPos int) ast.Node {
 	}
 }
 
-func (p *Parser) parseInt(startPos int) ast.Node {
+func (p *Parser) parseLimitedOperator(operator string, startPos int) ast.Node {
 	// Parse optional limits (subscript and superscript)
 	lowerLimit, upperLimit := p.parseLimits()
 
-	// Create an IntegralNode with just the limits
-	// The integrand will follow naturally in the parent expression
-	return &ast.IntegralNode{
+	// For \lim, we should validate that it only has a lower limit
+	if operator == "lim" && upperLimit != nil {
+		p.addError("\\lim can only have a lower limit", upperLimit.Pos())
+		upperLimit = nil // remove upperLimit to avoid any issues with \lim
+	}
+
+	// Create a LimitedOperatorNode with the limits
+	return &ast.LimitedOperatorNode{
 		Start:      startPos,
+		Operator:   operator,
 		LowerLimit: lowerLimit,
 		UpperLimit: upperLimit,
 	}
 }
 
 func (p *Parser) parseSqrt(startPos int) ast.Node {
-    // Parse optional numeric index argument in square brackets
-    index := p.parseOptionalArgument()
-    
-    // Parse radicand in curly braces or single token
-    radicand := p.parseGroupedOrSingle()
-    if radicand == nil {
-        p.addError("expected radicand after \\sqrt", startPos)
-        return nil
-    }
-    
-    return &ast.SqrtNode{
-        Start:    startPos,
-        Radicand: radicand,
-        Index:    index,
-    }
+	// Parse optional numeric index argument in square brackets
+	index := p.parseOptionalArgument()
+
+	// Parse radicand in curly braces or single token
+	radicand := p.parseGroupedOrSingle()
+	if radicand == nil {
+		p.addError("expected radicand after \\sqrt", startPos)
+		return nil
+	}
+
+	return &ast.SqrtNode{
+		Start:    startPos,
+		Radicand: radicand,
+		Index:    index,
+	}
 }

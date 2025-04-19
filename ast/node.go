@@ -168,15 +168,17 @@ func (n *FractionNode) Accept(v Visitor) {
 	v.VisitFractionNode(n)
 }
 
-// IntegralNode represents a LaTeX \int command with optional limits.
-type IntegralNode struct {
+// LimitedOperatorNode represents operators like \int, \sum, \prod, \lim that can have
+// limits (subscripts and/or superscripts).
+type LimitedOperatorNode struct {
 	Start      int
+	Operator   string // "int", "sum", "prod", "lim", etc.
 	LowerLimit Node
 	UpperLimit Node
 }
 
-func (n *IntegralNode) Pos() int { return n.Start }
-func (n *IntegralNode) End() int {
+func (n *LimitedOperatorNode) Pos() int { return n.Start }
+func (n *LimitedOperatorNode) End() int {
 	// If there are limits, the end is the end of the last limit
 	if n.UpperLimit != nil {
 		return n.UpperLimit.End()
@@ -184,11 +186,12 @@ func (n *IntegralNode) End() int {
 	if n.LowerLimit != nil {
 		return n.LowerLimit.End()
 	}
-	return n.Start + 4 // Length of "\int"
+	// Length of the operator backslash + name
+	return n.Start + len(n.Operator) + 1
 }
 
-func (n *IntegralNode) Accept(v Visitor) {
-	v.VisitIntegralNode(n)
+func (n *LimitedOperatorNode) Accept(v Visitor) {
+	v.VisitLimitedOperatorNode(n)
 }
 
 // SqrtNode represents a LaTeX `\sqrt` command, optionally with an index.
