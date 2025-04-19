@@ -19,6 +19,7 @@ type Visitor interface {
 	VisitFractionNode(node *FractionNode)
 	VisitLimitedOperatorNode(node *LimitedOperatorNode)
 	VisitSqrtNode(node *SqrtNode)
+	VisitBinomNode(node *BinomNode)
 }
 
 // BaseVisitor provides default implementations for all Visitor methods.
@@ -69,4 +70,9 @@ func (v *BaseVisitor) VisitSqrtNode(node *SqrtNode) {
 	if node.Radicand != nil {
 		node.Radicand.Accept(v)
 	}
+}
+
+func (v *BaseVisitor) VisitBinomNode(node *BinomNode) {
+	node.Upper.Accept(v)
+	node.Lower.Accept(v)
 }

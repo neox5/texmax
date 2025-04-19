@@ -279,3 +279,23 @@ func (p *PrintVisitor) VisitSqrtNode(node *SqrtNode) {
 	p.printIndent()
 	fmt.Fprintf(p.Writer, "}\n")
 }
+
+func (p *PrintVisitor) VisitBinomNode(node *BinomNode) {
+	fmt.Fprintf(p.Writer, "*ast.BinomNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Upper: ")
+	node.Upper.Accept(p)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Lower: ")
+	node.Lower.Accept(p)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
+}

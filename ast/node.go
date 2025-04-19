@@ -216,3 +216,17 @@ func (n *SqrtNode) End() int {
 func (n *SqrtNode) Accept(v Visitor) {
 	v.VisitSqrtNode(n)
 }
+
+// BinomNode represents a LaTeX `\binom{a}{b}` command for binomial coefficients.
+type BinomNode struct {
+	Start int
+	Upper Node
+	Lower Node
+}
+
+func (n *BinomNode) Pos() int { return n.Start }
+func (n *BinomNode) End() int { return n.Lower.End() }
+
+func (n *BinomNode) Accept(v Visitor) {
+	v.VisitBinomNode(n)
+}

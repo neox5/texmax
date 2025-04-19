@@ -61,6 +61,8 @@ func (p *Parser) parseCommand() ast.Node {
 		return p.parseFrac(startPos)
 	case "sqrt":
 		return p.parseSqrt(startPos)
+	case "binom":
+		return p.parseBinom(startPos)
 	default:
 		p.addError(fmt.Sprintf("unsupported command: \\%s", commandName), startPos)
 		return nil
@@ -122,5 +124,26 @@ func (p *Parser) parseSqrt(startPos int) ast.Node {
 		Start:    startPos,
 		Radicand: radicand,
 		Index:    index,
+	}
+}
+
+func (p *Parser) parseBinom(startPos int) ast.Node {
+	// A binomial coefficient requires two arguments: upper and lower
+	upper := p.parseGroupedStrict()
+	if upper == nil {
+		p.addError("expected upper value after \\binom", startPos)
+		return nil
+	}
+
+	lower := p.parseGroupedStrict()
+	if lower == nil {
+		p.addError("expected lower value after \\binom{...}", startPos)
+		return nil
+	}
+
+	return &ast.BinomNode{
+		Start: startPos,
+		Upper: upper,
+		Lower: lower,
 	}
 }
