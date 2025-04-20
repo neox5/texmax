@@ -19,6 +19,7 @@ const (
 	LBRACE      // {
 	RBRACE      // }
 	DELIMITER   // ( ), [ ], | etc. (visual math delimiters)
+	PERIOD      // .
 )
 
 // Token represents a single lexical token.
@@ -60,6 +61,8 @@ func (tt TokenType) String() string {
 		return "RBRACE"
 	case DELIMITER:
 		return "DELIMITER"
+	case PERIOD:
+		return "PERIOD"
 	default:
 		return "UNKNOWN"
 	}

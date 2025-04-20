@@ -69,6 +69,34 @@ func (p *PrintVisitor) VisitExpressionNode(node *ExpressionNode) {
 	fmt.Fprintf(p.Writer, "}\n")
 }
 
+func (p *PrintVisitor) VisitDelimitedExpressionNode(node *DelimitedExpressionNode) {
+	fmt.Fprintf(p.Writer, "*ast.DelimitedExpressionNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "LeftDelimiter: ")
+	node.LeftDelimiter.Accept(p)
+
+	p.printIndent()
+	if node.Content != nil {
+		fmt.Fprintf(p.Writer, "Content: ")
+		node.Content.Accept(p)
+	} else {
+		fmt.Fprintf(p.Writer, "Content: nil\n")
+	}
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "RightDelimiter: ")
+	node.RightDelimiter.Accept(p)
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
+}
+
 // Visit methods for leaf nodes
 func (p *PrintVisitor) VisitSymbolNode(node *SymbolNode) {
 	fmt.Fprintf(p.Writer, "*ast.SymbolNode {\n")

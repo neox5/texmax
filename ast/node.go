@@ -35,6 +35,27 @@ func (n *ExpressionNode) Accept(v Visitor) {
 	v.VisitExpressionNode(n)
 }
 
+// DelimitedExpressionNode represents a LaTeX expression enclosed in delimiters,
+// typically created with \left and \right commands. These delimiters automatically
+// adjust their size based on the height of the enclosed content.
+// Examples: \left( ... \right), \left[ ... \right], \left\{ ... \right\}
+type DelimitedExpressionNode struct {
+	Start          int
+	LeftDelimiter  Node
+	Content        Node
+	RightDelimiter Node
+}
+
+func (n *DelimitedExpressionNode) Pos() int { return n.Start }
+func (n *DelimitedExpressionNode) End() int {
+	// the end is after the right Delimiter
+	return n.RightDelimiter.End()
+}
+
+func (n *DelimitedExpressionNode) Accept(v Visitor) {
+	v.VisitDelimitedExpressionNode(n)
+}
+
 // --------------------
 // Leaf Nodes
 // --------------------

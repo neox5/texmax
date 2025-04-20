@@ -114,6 +114,12 @@ func Tokenize(input string) []Token {
 			i++
 			pos += charLen
 
+		// PERIOD: .
+		case r == '.':
+			tokens = append(tokens, Token{Type: PERIOD, Value: string(r), Pos: start})
+			i++
+			pos += charLen
+
 		// ILLEGAL
 		default:
 			tokens = append(tokens, Token{Type: ILLEGAL, Value: string(r), Pos: start})

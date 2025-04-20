@@ -4,6 +4,7 @@ package ast
 type Visitor interface {
 	// Visit methods for container nodes
 	VisitExpressionNode(node *ExpressionNode)
+	VisitDelimitedExpressionNode(node *DelimitedExpressionNode)
 
 	// Visit methods for leaf nodes
 	VisitSymbolNode(node *SymbolNode)
@@ -30,6 +31,17 @@ func (v *BaseVisitor) VisitExpressionNode(node *ExpressionNode) {
 	for _, child := range node.Elements {
 		child.Accept(v)
 	}
+}
+
+func (v *BaseVisitor) VisitDelimitedExpressionNode(node *DelimitedExpressionNode) {
+	// Left and right delimiters must be present
+	node.LeftDelimiter.Accept(v)
+
+	if node.Content != nil {
+		node.Content.Accept(v)
+	}
+
+	node.RightDelimiter.Accept(v)
 }
 
 func (v *BaseVisitor) VisitSymbolNode(node *SymbolNode)                           {}
