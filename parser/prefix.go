@@ -21,3 +21,8 @@ func (p *Parser) parseOperatorSymbol() ast.Node {
 	t := p.next()
 	return &ast.OperatorNode{Start: t.Pos, Value: t.Value}
 }
+
+func (p *Parser) parseDelimiter() ast.Node {
+	t := p.next()
+	return &ast.DelimiterNode{Start: t.Pos, Value: t.Value}
+}
