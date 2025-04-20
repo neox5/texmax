@@ -21,18 +21,43 @@ func Tokenize(input string) []Token {
 			i++
 			pos += charLen
 
-		// COMMAND
+		// COMMAND - handles both letter commands and symbol commands
 		case r == '\\':
-			startIdx := i + 1
-			endIdx := startIdx
-
-			for endIdx < len(runes) && unicode.IsLetter(runes[endIdx]) {
-				endIdx++
+			if i+1 >= len(runes) {
+				// Trailing backslash - treat as illegal
+				tokens = append(tokens, Token{Type: ILLEGAL, Value: "\\", Pos: start})
+				i++
+				pos += charLen
+				continue
 			}
-			cmd := string(runes[startIdx:endIdx])
-			tokens = append(tokens, Token{Type: COMMAND, Value: cmd, Pos: start})
-			i = endIdx
-			pos += len(`\` + cmd)
+
+			nextChar := runes[i+1]
+
+			if unicode.IsLetter(nextChar) {
+				// Traditional letter command like \frac, \alpha
+				startIdx := i + 1
+				endIdx := startIdx
+
+				for endIdx < len(runes) && unicode.IsLetter(runes[endIdx]) {
+					endIdx++
+				}
+				cmd := string(runes[startIdx:endIdx])
+				tokens = append(tokens, Token{Type: COMMAND, Value: cmd, Pos: start})
+				i = endIdx
+				pos += len(`\` + cmd)
+			} else if !unicode.IsNumber(nextChar) {
+				// Any non-letter, non-number character can follow backslash as a symbol command
+				// Examples: \{, \}, \[, \], \|, \,, \;, etc.
+				cmdChar := string(runes[i+1])
+				tokens = append(tokens, Token{Type: COMMAND, Value: cmdChar, Pos: start})
+				i += 2 // Skip backslash and the symbol
+				pos += len(`\` + cmdChar)
+			} else {
+				invalidCmd := "\\" + string(runes[i+1])
+				tokens = append(tokens, Token{Type: ILLEGAL, Value: invalidCmd, Pos: start})
+				i += 2
+				pos += len(invalidCmd)
+			}
 
 		// NUMBER
 		case unicode.IsDigit(r):
