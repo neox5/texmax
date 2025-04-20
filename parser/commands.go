@@ -56,6 +56,11 @@ func (p *Parser) parseCommand() ast.Node {
 		return p.parseLimitedOperator(commandName, startPos)
 	}
 
+	// Check if this is a Greek letter
+	if isGreekLetter(commandName) {
+		return p.parseGreek(commandName, startPos)
+	}
+
 	switch commandName {
 	case "frac":
 		return p.parseFrac(startPos)
