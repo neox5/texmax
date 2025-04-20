@@ -64,7 +64,7 @@ func isGreekLetter(name string) bool {
 }
 
 // parseGreek parses a Greek letter command and returns a SymbolNode
-func (p *Parser) parseGreek(commandName string, startPos int) ast.Node {
+func (p *Parser) parseGreekLetter(commandName string, startPos int) ast.Node {
 	// Look up the Unicode representation of the Greek letter
 	if symbol, ok := greekLetters[commandName]; ok {
 		return &ast.SymbolNode{
