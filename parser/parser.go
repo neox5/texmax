@@ -52,7 +52,8 @@ func (p *Parser) parseExpression() *ast.ExpressionNode {
 		// Exit conditions
 		if curr.Type == tokenizer.EOF ||
 			curr.Type == tokenizer.RBRACE ||
-			(curr.Type == tokenizer.DELIMITER && curr.Value == "]") {
+			(curr.Type == tokenizer.DELIMITER && curr.Value == "]") ||
+			(curr.Type == tokenizer.COMMAND && curr.Value == "right") {
 			break
 		}
 
