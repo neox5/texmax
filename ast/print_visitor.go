@@ -327,3 +327,43 @@ func (p *PrintVisitor) VisitBinomNode(node *BinomNode) {
 	p.printIndent()
 	fmt.Fprintf(p.Writer, "}\n")
 }
+
+func (p *PrintVisitor) VisitMatrixNode(node *MatrixNode) {
+	fmt.Fprintf(p.Writer, "*ast.MatrixNode {\n")
+	p.increaseDepth()
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Start: %d\n", node.Start)
+
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "Rows: [][]ast.Node (rows = %d) {\n", len(node.Rows))
+	p.increaseDepth()
+
+	for i, row := range node.Rows {
+		p.printIndent()
+		fmt.Fprintf(p.Writer, "Row %d: (cols = %d) {\n", i, len(row))
+		p.increaseDepth()
+
+		for j, cell := range row {
+			p.printIndent()
+			fmt.Fprintf(p.Writer, "Cell [%d,%d]: ", i, j)
+			if cell != nil {
+				cell.Accept(p)
+			} else {
+				fmt.Fprintf(p.Writer, "nil\n")
+			}
+		}
+
+		p.decreaseDepth()
+		p.printIndent()
+		fmt.Fprintf(p.Writer, "}\n")
+	}
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
+
+	p.decreaseDepth()
+	p.printIndent()
+	fmt.Fprintf(p.Writer, "}\n")
+}

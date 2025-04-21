@@ -251,3 +251,26 @@ func (n *BinomNode) End() int { return n.Lower.End() }
 func (n *BinomNode) Accept(v Visitor) {
 	v.VisitBinomNode(n)
 }
+
+// MatrixNode represents a LaTeX matrix environment containing a grid of elements
+// arranged in rows and columns, such as in \begin{matrix}...\end{matrix}
+type MatrixNode struct {
+	Start int
+	Rows  [][]Node // A 2D array of nodes representing the cells
+}
+
+func (n *MatrixNode) Pos() int { return n.Start }
+func (n *MatrixNode) End() int {
+	if len(n.Rows) == 0 {
+		return n.Start
+	}
+	lastRow := n.Rows[len(n.Rows)-1]
+	if len(lastRow) == 0 {
+		return n.Start
+	}
+	return lastRow[len(lastRow)-1].End()
+}
+
+func (n *MatrixNode) Accept(v Visitor) {
+	v.VisitMatrixNode(n)
+}

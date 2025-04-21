@@ -21,6 +21,7 @@ type Visitor interface {
 	VisitLimitedOperatorNode(node *LimitedOperatorNode)
 	VisitSqrtNode(node *SqrtNode)
 	VisitBinomNode(node *BinomNode)
+	VisitMatrixNode(node *MatrixNode)
 }
 
 // BaseVisitor provides default implementations for all Visitor methods.
@@ -87,4 +88,14 @@ func (v *BaseVisitor) VisitSqrtNode(node *SqrtNode) {
 func (v *BaseVisitor) VisitBinomNode(node *BinomNode) {
 	node.Upper.Accept(v)
 	node.Lower.Accept(v)
+}
+
+func (v *BaseVisitor) VisitMatrixNode(node *MatrixNode) {
+	for _, row := range node.Rows {
+		for _, cell := range row {
+			if cell != nil {
+				cell.Accept(v)
+			}
+		}
+	}
 }
