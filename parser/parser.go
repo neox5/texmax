@@ -38,34 +38,28 @@ func New(ts []tokenizer.Token) *Parser {
 }
 
 func (p *Parser) Parse() (ast.Node, []ParseError) {
-	expr := p.parseExpression()
+	expr := p.parseExpression(nil)
 	return expr, p.errors
 }
 
 // parseExpression parses a sequence of nodes that form an expression
-func (p *Parser) parseExpression() *ast.ExpressionNode {
+// An optional 'until' function can specify when to stop parsing
+func (p *Parser) parseExpression(until func(tokenizer.Token) bool) *ast.ExpressionNode {
 	start := p.peek().Pos
 	var elements []ast.Node
 
 	for {
 		curr := p.peek()
-		// Exit conditions
-		if curr.Type == tokenizer.EOF ||
-			curr.Type == tokenizer.RBRACE ||
-			(curr.Type == tokenizer.DELIMITER && curr.Value == "]") ||
-			(curr.Type == tokenizer.COMMAND && curr.Value == "right") {
+		// Always exit on EOF for safety, plus any caller-specified condition
+		if curr.Type == tokenizer.EOF || (until != nil && until(curr)) {
 			break
 		}
 
 		n := p.parseNode(LOWEST)
 		if n != nil {
 			elements = append(elements, n)
-		} else {
-			// If parseNode returns nil, we should advance past the current token
-			// to avoid infinite loops (unless we're at EOF)
-			if p.peek().Type != tokenizer.EOF {
-				p.next()
-			}
+		} else if p.peek().Type != tokenizer.EOF {
+			p.next() // Avoid infinite loops
 		}
 	}
 

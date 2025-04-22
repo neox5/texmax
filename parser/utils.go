@@ -31,8 +31,10 @@ func (p *Parser) parseGroupedStrict() ast.Node {
 
 	p.next() // consume '{'
 
-	// Parse the expression inside the braces
-	expr := p.parseExpression()
+	// Stop parsing when we find a closing brace
+	expr := p.parseExpression(func(t tokenizer.Token) bool {
+		return t.Type == tokenizer.RBRACE
+	})
 
 	if p.peek().Type != tokenizer.RBRACE {
 		p.addError("expected '}'", p.peek().Pos)
@@ -83,8 +85,10 @@ func (p *Parser) parseOptionalArgument() ast.Node {
 
 	p.next() // consume '['
 
-	// Parse the expression inside the brackets
-	expr := p.parseExpression()
+	// Parse the expression inside the brackets, stopping at closing bracket
+	expr := p.parseExpression(func(t tokenizer.Token) bool {
+		return t.Type == tokenizer.DELIMITER && t.Value == "]"
+	})
 
 	// Check for closing bracket
 	if p.peek().Type != tokenizer.DELIMITER || p.peek().Value != "]" {

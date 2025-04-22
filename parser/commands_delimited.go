@@ -14,8 +14,10 @@ func (p *Parser) parseDelimitedExpression(startPos int) ast.Node {
 		return nil
 	}
 
-	// Parse the content between delimiters
-	content := p.parseExpression()
+	// Parse the content between delimiters, stopping at \right
+	content := p.parseExpression(func(t tokenizer.Token) bool {
+		return t.Type == tokenizer.COMMAND && t.Value == "right"
+	})
 
 	// Ensure we have a \right command
 	if p.peek().Type != tokenizer.COMMAND || p.peek().Value != "right" {
