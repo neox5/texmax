@@ -26,16 +26,23 @@ func (p *Parser) parseCommand() ast.Node {
 	switch cmd {
 	case "frac":
 		return p.parseFractionCommand(pos)
+
 	case "sqrt":
 		return p.parseSqrtCommand(pos)
+
 	case "binom":
 		return p.parseBinomCommand(pos)
+
 	case "left":
 		return p.parseDelimitedExpression(pos)
+
 	case "right":
-		// Handle \right outside of a \left...\right context
 		p.addError("unexpected \\right without matching \\left", pos)
 		return nil
+
+	case "begin":
+		return p.parseEnvironment(pos)
+
 	default:
 		p.addError(fmt.Sprintf("unsupported command: \\%s", cmd), pos)
 		return nil

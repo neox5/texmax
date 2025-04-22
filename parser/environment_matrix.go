@@ -8,9 +8,9 @@ import (
 )
 
 // parseMatrix parses a LaTeX matrix environment
-func (p *Parser) parseMatrix(startPos int) *ast.MatrixNode {
+func (p *Parser) parseMatrix(pos int) *ast.MatrixNode {
 	matrix := &ast.MatrixNode{
-		Start: startPos,
+		Start: pos,
 		Rows:  [][]ast.Node{},
 	}
 
