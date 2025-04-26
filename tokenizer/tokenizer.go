@@ -2,133 +2,102 @@ package tokenizer
 
 import "unicode"
 
-func Tokenize(input string) []Token {
+// Tokenize creates tokens from a source
+func Tokenize(src *Source) []Token {
 	var tokens []Token
-	var pos int
-	runes := []rune(input)
 
-	for i := 0; i < len(runes); {
-		r := runes[i]
+	// Initial scan to get the first character
+	src.Scan()
 
-		// Track current position (as bytes, not runes)
-		start := pos
-		charLen := len(string(r)) // byte length of the current rune
+	for !src.IsEOF() {
+		pos := src.Position()
+		ch := src.Char()
+
+		var tok Token
 
 		switch {
-		// SPACE
-		case unicode.IsSpace(r):
-			tokens = append(tokens, Token{Type: SPACE, Value: " ", Pos: start})
-			i++
-			pos += charLen
+		case unicode.IsSpace(ch):
+			tok = Token{Type: SPACE, Value: " ", Pos: pos}
+			src.Scan()
 
-		// COMMAND - handles both letter commands and symbol commands
-		case r == '\\':
-			if i+1 >= len(runes) {
-				// Trailing backslash - treat as illegal
-				tokens = append(tokens, Token{Type: ILLEGAL, Value: "\\", Pos: start})
-				i++
-				pos += charLen
-				continue
-			}
-
-			nextChar := runes[i+1]
-
-			if unicode.IsLetter(nextChar) {
-				// Traditional letter command like \frac, \alpha
-				startIdx := i + 1
-				endIdx := startIdx
-
-				for endIdx < len(runes) && unicode.IsLetter(runes[endIdx]) {
-					endIdx++
+		case ch == '\\':
+			// Handle commands
+			src.Scan() // Skip backslash
+			if src.IsEOF() {
+				tok = Token{Type: ILLEGAL, Value: "\\", Pos: pos}
+			} else if unicode.IsLetter(src.Char()) {
+				// Letter command
+				var cmd string
+				for !src.IsEOF() && unicode.IsLetter(src.Char()) {
+					cmd += string(src.Char())
+					src.Scan()
 				}
-				cmd := string(runes[startIdx:endIdx])
-				tokens = append(tokens, Token{Type: COMMAND, Value: cmd, Pos: start})
-				i = endIdx
-				pos += len(`\` + cmd)
-			} else if !unicode.IsNumber(nextChar) {
-				// Any non-letter, non-number character can follow backslash as a symbol command
-				// Examples: \{, \}, \[, \], \|, \,, \;, etc.
-				cmdChar := string(runes[i+1])
-				tokens = append(tokens, Token{Type: COMMAND, Value: cmdChar, Pos: start})
-				i += 2 // Skip backslash and the symbol
-				pos += len(`\` + cmdChar)
+				tok = Token{Type: COMMAND, Value: cmd, Pos: pos}
+			} else if !unicode.IsDigit(src.Char()) {
+				// Symbol command
+				tok = Token{Type: COMMAND, Value: string(src.Char()), Pos: pos}
+				src.Scan()
 			} else {
-				invalidCmd := "\\" + string(runes[i+1])
-				tokens = append(tokens, Token{Type: ILLEGAL, Value: invalidCmd, Pos: start})
-				i += 2
-				pos += len(invalidCmd)
+				// Invalid command
+				tok = Token{Type: ILLEGAL, Value: "\\" + string(src.Char()), Pos: pos}
+				src.Scan()
 			}
 
-		// NUMBER
-		case unicode.IsDigit(r):
-			startIdx := i
-			endIdx := i
-
-			for endIdx < len(runes) && unicode.IsDigit(runes[endIdx]) {
-				endIdx++
+		case unicode.IsDigit(ch):
+			// Number
+			var num string
+			for !src.IsEOF() && unicode.IsDigit(src.Char()) {
+				num += string(src.Char())
+				src.Scan()
 			}
-			number := string(runes[startIdx:endIdx])
-			tokens = append(tokens, Token{Type: NUMBER, Value: number, Pos: start})
-			i = endIdx
-			pos += len(number)
+			tok = Token{Type: NUMBER, Value: num, Pos: pos}
 
-		// SYMBOL
-		case unicode.IsLetter(r):
-			tokens = append(tokens, Token{Type: SYMBOL, Value: string(r), Pos: start})
-			i++
-			pos += charLen
+		case unicode.IsLetter(ch):
+			tok = Token{Type: SYMBOL, Value: string(ch), Pos: pos}
+			src.Scan()
 
-		// OPERATOR
-		case r == '+' || r == '-' || r == '*' || r == '/' || r == '=':
-			tokens = append(tokens, Token{Type: OPERATOR, Value: string(r), Pos: start})
-			i++
-			pos += charLen
+		case ch == '^':
+			tok = Token{Type: SUPERSCRIPT, Value: "^", Pos: pos}
+			src.Scan()
 
-		// SUPERSCRIPT
-		case r == '^':
-			tokens = append(tokens, Token{Type: SUPERSCRIPT, Value: "^", Pos: start})
-			i++
-			pos += charLen
+		case ch == '_':
+			tok = Token{Type: SUBSCRIPT, Value: "_", Pos: pos}
+			src.Scan()
 
-		// SUBSCRIPT
-		case r == '_':
-			tokens = append(tokens, Token{Type: SUBSCRIPT, Value: "_", Pos: start})
-			i++
-			pos += charLen
+		case ch == '{':
+			tok = Token{Type: LBRACE, Value: "{", Pos: pos}
+			src.Scan()
 
-		// LBRACE
-		case r == '{':
-			tokens = append(tokens, Token{Type: LBRACE, Value: "{", Pos: start})
-			i++
-			pos += charLen
+		case ch == '}':
+			tok = Token{Type: RBRACE, Value: "}", Pos: pos}
+			src.Scan()
 
-		// RBRACE
-		case r == '}':
-			tokens = append(tokens, Token{Type: RBRACE, Value: "}", Pos: start})
-			i++
-			pos += charLen
+		case ch == '(' || ch == ')' || ch == '[' || ch == ']' || ch == '|':
+			tok = Token{Type: DELIMITER, Value: string(ch), Pos: pos}
+			src.Scan()
 
-		// DELIMITERS: ( ) [ ] |
-		case r == '(' || r == ')' || r == '[' || r == ']' || r == '|':
-			tokens = append(tokens, Token{Type: DELIMITER, Value: string(r), Pos: start})
-			i++
-			pos += charLen
+		case ch == '.':
+			tok = Token{Type: PERIOD, Value: ".", Pos: pos}
+			src.Scan()
 
-		// PERIOD: .
-		case r == '.':
-			tokens = append(tokens, Token{Type: PERIOD, Value: string(r), Pos: start})
-			i++
-			pos += charLen
+		case ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '=' || ch == '&':
+			tok = Token{Type: OPERATOR, Value: string(ch), Pos: pos}
+			src.Scan()
 
-		// ILLEGAL
 		default:
-			tokens = append(tokens, Token{Type: ILLEGAL, Value: string(r), Pos: start})
-			i++
-			pos += charLen
+			tok = Token{Type: ILLEGAL, Value: string(ch), Pos: pos}
+			src.Scan()
 		}
+
+		tokens = append(tokens, tok)
 	}
 
-	// Add EOF token at end
-	tokens = append(tokens, Token{Type: EOF, Value: "", Pos: pos})
+	// Add EOF token
+	tokens = append(tokens, Token{
+		Type:  EOF,
+		Value: "",
+		Pos:   src.Position(),
+	})
+
 	return tokens
 }
