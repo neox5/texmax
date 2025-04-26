@@ -1,6 +1,9 @@
 package parser
 
-import "github.com/neox5/texmax/ast"
+import (
+	"github.com/neox5/texmax/ast"
+	"github.com/neox5/texmax/tokenizer"
+)
 
 // nonArgumentFunctions maps LaTeX math function names (like \sin, \cos)
 // that don't take explicit arguments in LaTeX syntax.
@@ -34,9 +37,9 @@ func isNonArgumentFunction(name string) bool {
 }
 
 // parseNonArgumentFunction creates a NonArgumentFunctionNode for functions like \sin, \cos
-func (p *Parser) parseNonArgumentFunction(name string, startPos int) ast.Node {
+func (p *Parser) parseNonArgumentFunction(name string, pos tokenizer.Position) ast.Node {
 	return &ast.NonArgumentFunctionNode{
-		Start: startPos,
+		Start: pos,
 		Name:  name,
 	}
 }
@@ -57,7 +60,7 @@ func isOperator(name string) bool {
 
 // parseOperator parses big operators like \int, \sum, \prod, \lim
 // that can have limits (subscripts/superscripts).
-func (p *Parser) parseOperator(operatorName string, startPos int) ast.Node {
+func (p *Parser) parseOperator(operatorName string, pos tokenizer.Position) ast.Node {
 	lowerLimit, upperLimit := p.parseLimits()
 
 	// For \lim, we should validate that it only has a lower limit
@@ -67,7 +70,7 @@ func (p *Parser) parseOperator(operatorName string, startPos int) ast.Node {
 	}
 
 	return &ast.LimitedOperatorNode{
-		Start:      startPos,
+		Start:      pos,
 		Operator:   operatorName,
 		LowerLimit: lowerLimit,
 		UpperLimit: upperLimit,

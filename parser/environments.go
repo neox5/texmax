@@ -7,7 +7,7 @@ import (
 
 // parseEnvironment parses LaTeX environments like \begin{env}...\end{env}
 // The \begin command token has already been consumed by parseCommand
-func (p *Parser) parseEnvironment(pos int) ast.Node {
+func (p *Parser) parseEnvironment(pos tokenizer.Position) ast.Node {
 
 	// Internal helper function to extract environment name from ExpressionNode.
 	// It concatenates all symbol tokens to form the complete environment name.

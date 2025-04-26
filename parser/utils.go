@@ -12,7 +12,7 @@ func (p *Parser) peek() tokenizer.Token {
 	}
 
 	if p.pos >= len(p.tokens) {
-		return tokenizer.Token{Type: tokenizer.EOF, Value: "", Pos: -1}
+		return tokenizer.Token{Type: tokenizer.EOF, Value: "", Pos: tokenizer.Position{}}
 	}
 	return p.tokens[p.pos]
 }

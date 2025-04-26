@@ -1,6 +1,9 @@
 package parser
 
-import "github.com/neox5/texmax/ast"
+import (
+	"github.com/neox5/texmax/ast"
+	"github.com/neox5/texmax/tokenizer"
+)
 
 // List of Greek letter commands in LaTeX
 var greekLetters = map[string]string{
@@ -64,11 +67,11 @@ func isGreekLetter(name string) bool {
 }
 
 // parseGreek parses a Greek letter command and returns a SymbolNode
-func (p *Parser) parseGreekLetter(commandName string, startPos int) ast.Node {
+func (p *Parser) parseGreekLetter(commandName string, pos tokenizer.Position) ast.Node {
 	// Look up the Unicode representation of the Greek letter
 	if symbol, ok := greekLetters[commandName]; ok {
 		return &ast.SymbolNode{
-			Start: startPos,
+			Start: pos,
 			Value: symbol,
 		}
 	}

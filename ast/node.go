@@ -1,11 +1,13 @@
 package ast
 
+import "github.com/neox5/texmax/tokenizer"
+
 // Node represents a node in the LaTeX math abstract syntax tree.
 type Node interface {
 	// Pos returns the position of the first character of the node.
-	Pos() int
+	Pos() tokenizer.Position
 	// End returns the position of the character immediately after the node.
-	End() int
+	End() tokenizer.Position
 
 	// Accept accepts a visitor to this node.
 	Accept(v Visitor)
@@ -19,12 +21,12 @@ type Node interface {
 // This serves as a general-purpose container for multiple nodes and can be used
 // at any level of the AST, including as the root.
 type ExpressionNode struct {
-	Start    int
+	Start    tokenizer.Position
 	Elements []Node
 }
 
-func (n *ExpressionNode) Pos() int { return n.Start }
-func (n *ExpressionNode) End() int {
+func (n *ExpressionNode) Pos() tokenizer.Position { return n.Start }
+func (n *ExpressionNode) End() tokenizer.Position {
 	if len(n.Elements) == 0 {
 		return n.Start
 	}
@@ -40,14 +42,14 @@ func (n *ExpressionNode) Accept(v Visitor) {
 // adjust their size based on the height of the enclosed content.
 // Examples: \left( ... \right), \left[ ... \right], \left\{ ... \right\}
 type DelimitedExpressionNode struct {
-	Start          int
+	Start          tokenizer.Position
 	LeftDelimiter  Node
 	Content        Node
 	RightDelimiter Node
 }
 
-func (n *DelimitedExpressionNode) Pos() int { return n.Start }
-func (n *DelimitedExpressionNode) End() int {
+func (n *DelimitedExpressionNode) Pos() tokenizer.Position { return n.Start }
+func (n *DelimitedExpressionNode) End() tokenizer.Position {
 	// the end is after the right Delimiter
 	return n.RightDelimiter.End()
 }
@@ -62,12 +64,17 @@ func (n *DelimitedExpressionNode) Accept(v Visitor) {
 
 // SymbolNode represents a single letter or variable, e.g., "x".
 type SymbolNode struct {
-	Start int
+	Start tokenizer.Position
 	Value string
 }
 
-func (n *SymbolNode) Pos() int { return n.Start }
-func (n *SymbolNode) End() int { return n.Start + len(n.Value) }
+func (n *SymbolNode) Pos() tokenizer.Position { return n.Start }
+func (n *SymbolNode) End() tokenizer.Position {
+	end := n.Start
+	end.Offset += len(n.Value)
+	end.Column += len(n.Value)
+	return end
+}
 
 func (n *SymbolNode) Accept(v Visitor) {
 	v.VisitSymbolNode(n)
@@ -75,12 +82,17 @@ func (n *SymbolNode) Accept(v Visitor) {
 
 // NumberNode represents a numeric literal, e.g., "123".
 type NumberNode struct {
-	Start int
+	Start tokenizer.Position
 	Value string
 }
 
-func (n *NumberNode) Pos() int { return n.Start }
-func (n *NumberNode) End() int { return n.Start + len(n.Value) }
+func (n *NumberNode) Pos() tokenizer.Position { return n.Start }
+func (n *NumberNode) End() tokenizer.Position {
+	end := n.Start
+	end.Offset += len(n.Value)
+	end.Column += len(n.Value)
+	return end
+}
 
 func (n *NumberNode) Accept(v Visitor) {
 	v.VisitNumberNode(n)
@@ -88,12 +100,17 @@ func (n *NumberNode) Accept(v Visitor) {
 
 // OperatorNode represents an operator, e.g., "+", "-", "*".
 type OperatorNode struct {
-	Start int
+	Start tokenizer.Position
 	Value string
 }
 
-func (n *OperatorNode) Pos() int { return n.Start }
-func (n *OperatorNode) End() int { return n.Start + len(n.Value) }
+func (n *OperatorNode) Pos() tokenizer.Position { return n.Start }
+func (n *OperatorNode) End() tokenizer.Position {
+	end := n.Start
+	end.Offset += len(n.Value)
+	end.Column += len(n.Value)
+	return end
+}
 
 func (n *OperatorNode) Accept(v Visitor) {
 	v.VisitOperatorNode(n)
@@ -103,14 +120,17 @@ func (n *OperatorNode) Accept(v Visitor) {
 // These functions are rendered in upright Roman font with proper spacing, but don't
 // take explicit arguments in LaTeX syntax (any following expression is implicitly an argument).
 type NonArgumentFunctionNode struct {
-	Start int
+	Start tokenizer.Position
 	Name  string
 }
 
-func (n *NonArgumentFunctionNode) Pos() int { return n.Start }
-func (n *NonArgumentFunctionNode) End() int {
+func (n *NonArgumentFunctionNode) Pos() tokenizer.Position { return n.Start }
+func (n *NonArgumentFunctionNode) End() tokenizer.Position {
+	end := n.Start
 	// End position is the start position plus the length of the name and backslash
-	return n.Start + len(n.Name) + 1 // +1 for the backslash
+	end.Offset += len(n.Name) + 1 // +1 for the backslash
+	end.Column += len(n.Name) + 1
+	return end
 }
 
 func (n *NonArgumentFunctionNode) Accept(v Visitor) {
@@ -119,12 +139,17 @@ func (n *NonArgumentFunctionNode) Accept(v Visitor) {
 
 // SpaceNode represents a space.
 type SpaceNode struct {
-	Start int
+	Start tokenizer.Position
 	Value string
 }
 
-func (n *SpaceNode) Pos() int { return n.Start }
-func (n *SpaceNode) End() int { return n.Start + len(n.Value) }
+func (n *SpaceNode) Pos() tokenizer.Position { return n.Start }
+func (n *SpaceNode) End() tokenizer.Position {
+	end := n.Start
+	end.Offset += len(n.Value)
+	end.Column += len(n.Value)
+	return end
+}
 
 func (n *SpaceNode) Accept(v Visitor) {
 	v.VisitSpaceNode(n)
@@ -132,12 +157,17 @@ func (n *SpaceNode) Accept(v Visitor) {
 
 // DelimiterNode represents a visual math delimiter, such as "(" or "]".
 type DelimiterNode struct {
-	Start int
+	Start tokenizer.Position
 	Value string
 }
 
-func (n *DelimiterNode) Pos() int { return n.Start }
-func (n *DelimiterNode) End() int { return n.Start + len(n.Value) }
+func (n *DelimiterNode) Pos() tokenizer.Position { return n.Start }
+func (n *DelimiterNode) End() tokenizer.Position {
+	end := n.Start
+	end.Offset += len(n.Value)
+	end.Column += len(n.Value)
+	return end
+}
 
 func (n *DelimiterNode) Accept(v Visitor) {
 	v.VisitDelimiterNode(n)
@@ -149,13 +179,13 @@ func (n *DelimiterNode) Accept(v Visitor) {
 
 // SuperscriptNode represents `base^exponent`.
 type SuperscriptNode struct {
-	Start    int
+	Start    tokenizer.Position
 	Base     Node
 	Exponent Node
 }
 
-func (n *SuperscriptNode) Pos() int { return n.Start }
-func (n *SuperscriptNode) End() int { return n.Exponent.End() }
+func (n *SuperscriptNode) Pos() tokenizer.Position { return n.Start }
+func (n *SuperscriptNode) End() tokenizer.Position { return n.Exponent.End() }
 
 func (n *SuperscriptNode) Accept(v Visitor) {
 	v.VisitSuperscriptNode(n)
@@ -163,13 +193,13 @@ func (n *SuperscriptNode) Accept(v Visitor) {
 
 // SubscriptNode represents `base_subscript`.
 type SubscriptNode struct {
-	Start     int
+	Start     tokenizer.Position
 	Base      Node
 	Subscript Node
 }
 
-func (n *SubscriptNode) Pos() int { return n.Start }
-func (n *SubscriptNode) End() int { return n.Subscript.End() }
+func (n *SubscriptNode) Pos() tokenizer.Position { return n.Start }
+func (n *SubscriptNode) End() tokenizer.Position { return n.Subscript.End() }
 
 func (n *SubscriptNode) Accept(v Visitor) {
 	v.VisitSubscriptNode(n)
@@ -177,13 +207,13 @@ func (n *SubscriptNode) Accept(v Visitor) {
 
 // FractionNode represents a LaTeX `\frac{a}{b}`.
 type FractionNode struct {
-	Start       int
+	Start       tokenizer.Position
 	Numerator   Node
 	Denominator Node
 }
 
-func (n *FractionNode) Pos() int { return n.Start }
-func (n *FractionNode) End() int { return n.Denominator.End() }
+func (n *FractionNode) Pos() tokenizer.Position { return n.Start }
+func (n *FractionNode) End() tokenizer.Position { return n.Denominator.End() }
 
 func (n *FractionNode) Accept(v Visitor) {
 	v.VisitFractionNode(n)
@@ -192,14 +222,14 @@ func (n *FractionNode) Accept(v Visitor) {
 // LimitedOperatorNode represents operators like \int, \sum, \prod, \lim that can have
 // limits (subscripts and/or superscripts).
 type LimitedOperatorNode struct {
-	Start      int
+	Start      tokenizer.Position
 	Operator   string // "int", "sum", "prod", "lim", etc.
 	LowerLimit Node
 	UpperLimit Node
 }
 
-func (n *LimitedOperatorNode) Pos() int { return n.Start }
-func (n *LimitedOperatorNode) End() int {
+func (n *LimitedOperatorNode) Pos() tokenizer.Position { return n.Start }
+func (n *LimitedOperatorNode) End() tokenizer.Position {
 	// If there are limits, the end is the end of the last limit
 	if n.UpperLimit != nil {
 		return n.UpperLimit.End()
@@ -208,7 +238,10 @@ func (n *LimitedOperatorNode) End() int {
 		return n.LowerLimit.End()
 	}
 	// Length of the operator backslash + name
-	return n.Start + len(n.Operator) + 1
+	end := n.Start
+	end.Offset += len(n.Operator) + 1
+	end.Column += len(n.Operator) + 1
+	return end
 }
 
 func (n *LimitedOperatorNode) Accept(v Visitor) {
@@ -218,20 +251,23 @@ func (n *LimitedOperatorNode) Accept(v Visitor) {
 // SqrtNode represents a LaTeX `\sqrt` command, optionally with an index.
 // For example: \sqrt{x} for a square root, or \sqrt[n]{x} for an nth root.
 type SqrtNode struct {
-	Start    int
+	Start    tokenizer.Position
 	Radicand Node // The expression under the radical
 	Index    Node // Optional: The index for nth roots (as in \sqrt[n]{x})
 }
 
-func (n *SqrtNode) Pos() int { return n.Start }
-func (n *SqrtNode) End() int {
+func (n *SqrtNode) Pos() tokenizer.Position { return n.Start }
+func (n *SqrtNode) End() tokenizer.Position {
 	// If there's a radicand, the end is the end of the radicand
 	if n.Radicand != nil {
 		return n.Radicand.End()
 	}
 	// If there's no radicand (which shouldn't happen in valid LaTeX),
 	// the end is the start plus the length of \sqrt
-	return n.Start + 5 // Length of "\sqrt"
+	end := n.Start
+	end.Offset += 5 // Length of "\sqrt"
+	end.Column += 5
+	return end
 }
 
 func (n *SqrtNode) Accept(v Visitor) {
@@ -240,13 +276,13 @@ func (n *SqrtNode) Accept(v Visitor) {
 
 // BinomNode represents a LaTeX `\binom{a}{b}` command for binomial coefficients.
 type BinomNode struct {
-	Start int
+	Start tokenizer.Position
 	Upper Node
 	Lower Node
 }
 
-func (n *BinomNode) Pos() int { return n.Start }
-func (n *BinomNode) End() int { return n.Lower.End() }
+func (n *BinomNode) Pos() tokenizer.Position { return n.Start }
+func (n *BinomNode) End() tokenizer.Position { return n.Lower.End() }
 
 func (n *BinomNode) Accept(v Visitor) {
 	v.VisitBinomNode(n)
@@ -255,12 +291,12 @@ func (n *BinomNode) Accept(v Visitor) {
 // MatrixNode represents a LaTeX matrix environment containing a grid of elements
 // arranged in rows and columns, such as in \begin{matrix}...\end{matrix}
 type MatrixNode struct {
-	Start int
+	Start tokenizer.Position
 	Rows  [][]Node // A 2D array of nodes representing the cells
 }
 
-func (n *MatrixNode) Pos() int { return n.Start }
-func (n *MatrixNode) End() int {
+func (n *MatrixNode) Pos() tokenizer.Position { return n.Start }
+func (n *MatrixNode) End() tokenizer.Position {
 	if len(n.Rows) == 0 {
 		return n.Start
 	}
