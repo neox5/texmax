@@ -1,5 +1,7 @@
 package tokenizer
 
+import "fmt"
+
 // TokenType defines the type of a token from LaTeX input.
 type TokenType int
 
@@ -26,12 +28,16 @@ const (
 type Token struct {
 	Type  TokenType // Type of the token
 	Value string    // Literal value from input
-	Pos   int       // Byte offset in the input
+	Pos   Position  // Byte offset in the input
 }
 
 // String returns a readable representation of the token.
 func (t Token) String() string {
-	return t.Type.String() + "('" + t.Value + "')"
+	return fmt.Sprintf("%s('%s' at line %d, col %d)",
+		t.Type.String(),
+		t.Value,
+		t.Pos.Line,
+		t.Pos.Column)
 }
 
 // String implements the fmt.Stringer interface for TokenType.
