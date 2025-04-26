@@ -38,23 +38,26 @@ func (p *Parser) parseMatrix(pos tokenizer.Position) *ast.MatrixNode {
 		p.addError(fmt.Sprintf("row %d has too few columns (%d instead of %d)", j+1, len(row), colCount), p.peek().Pos)
 	}
 
-	for p.peek().Type == tokenizer.COMMAND && p.peek().Value == "end" {
+	for {
+		if p.peek().Type == tokenizer.COMMAND && p.peek().Value == "end" {
+			break
+		}
+
 		// Parse cell content
 		cell := p.parseExpression(func(t tokenizer.Token) bool {
-			return (t.Type == tokenizer.OPERATOR && t.Value == "&") ||
-				(t.Type == tokenizer.COMMAND && t.Value == "\\")
+			return t.Type == tokenizer.AMPERSAND || t.Type == tokenizer.BACKSLASH
 		})
 
 		row = append(row, cell)
 
 		// Handle column separator
-		if p.peek().Type == tokenizer.OPERATOR && p.peek().Value == "&" {
+		if p.peek().Type == tokenizer.AMPERSAND {
 			p.next() // consume &
 			continue
 		}
 
 		// Handle row separator
-		if p.peek().Type == tokenizer.COMMAND && p.peek().Value == "\\" {
+		if p.peek().Type == tokenizer.BACKSLASH {
 			p.next() // consume \\
 
 			// Check if this is an invalid row separator before \end
